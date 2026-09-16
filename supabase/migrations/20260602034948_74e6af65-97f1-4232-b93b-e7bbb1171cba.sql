@@ -1,0 +1,1 @@
+ALTER TABLE public.plans ADD COLUMN IF NOT EXISTS payout_frequency text NOT NULL DEFAULT 'end_of_term' CHECK (payout_frequency IN ('daily','weekly','monthly','end_of_term'));

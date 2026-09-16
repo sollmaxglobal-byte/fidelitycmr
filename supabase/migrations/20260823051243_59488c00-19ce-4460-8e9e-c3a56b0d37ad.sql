@@ -1,0 +1,1 @@
+GRANT SELECT (id, announcement_enabled, announcement_title, announcement_message, announcement_link, announcement_link_label, announcement_version) ON public.app_settings TO anon, authenticated;

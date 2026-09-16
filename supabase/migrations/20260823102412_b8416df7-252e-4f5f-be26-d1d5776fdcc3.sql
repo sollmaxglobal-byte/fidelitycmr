@@ -1,0 +1,2 @@
+INSERT INTO public.plans (name, description, min_amount, max_amount, fixed_amount, amount_type, profit_type, fixed_daily_profit, daily_roi_percent, duration_days, payout_frequency, active)
+VALUES ('FIDE 0', 'Entry plan', 1000, 1000, 1000, 'fixed', 'fixed', 50, 0, 30, 'daily', true);

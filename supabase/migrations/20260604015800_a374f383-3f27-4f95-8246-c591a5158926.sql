@@ -1,0 +1,2 @@
+UPDATE public.app_settings SET sendpulse_chat_id = trim(both '"' from sendpulse_chat_id) WHERE id = 1 AND sendpulse_chat_id ~ '^".*"$';
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS is_suspended boolean NOT NULL DEFAULT false;

@@ -1,0 +1,33 @@
+{
+  "name": "Automatic Withdrawal - Confirm Before PIN",
+  "version": 1,
+  "description": "Prepares a mobile-money USSD payment and pauses for manual PIN entry and confirmation.",
+  "safety": {
+    "storesPin": false,
+    "autoEntersPin": false,
+    "autoConfirmsPayment": false
+  },
+  "variables": {
+    "phone_number": "",
+    "amount": ""
+  },
+  "steps": [
+    {
+      "type": "input_dialog",
+      "title": "Withdrawal details",
+      "fields": ["phone_number", "amount"]
+    },
+    {
+      "type": "confirmation",
+      "message": "Review the phone number and amount before opening the payment screen."
+    },
+    {
+      "type": "launch_ussd",
+      "code_template": "*126*9*{phone_number}*{amount}#"
+    },
+    {
+      "type": "pause",
+      "message": "Enter your mobile-money PIN manually, review the payment, and confirm it yourself."
+    }
+  ]
+}

@@ -1,0 +1,370 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+.brand-logo {
+  position: relative;
+  display: inline-block;
+  width: 220px;
+  height: 64px;
+  overflow: hidden;
+  vertical-align: middle;
+}
+
+.brand-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  overflow: visible;
+  color: hsl(var(--foreground));
+  white-space: nowrap;
+}
+
+.brand-logo-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border: 2px solid hsl(var(--primary));
+  border-radius: 0.7rem;
+  color: hsl(var(--primary));
+  font-size: 1.45rem;
+  font-weight: 800;
+  line-height: 1;
+  transform: rotate(-12deg);
+}
+
+.brand-logo-wordmark {
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+}
+
+.brand-logo-wordmark strong {
+  color: hsl(var(--primary));
+  font-weight: 800;
+}
+
+@media (max-width: 640px) {
+  .brand-logo {
+    width: 176px;
+    height: 52px;
+  }
+  .brand-logo-wordmark {
+    font-size: 1.1rem;
+  }
+
+  .brand-logo-mark {
+    width: 1.75rem;
+    height: 1.75rem;
+    font-size: 1.2rem;
+  }
+}
+
+html {
+  overscroll-behavior-y: none;
+  background: hsl(var(--background));
+}
+
+body {
+  min-height: 100dvh;
+  overscroll-behavior-y: none;
+  -webkit-tap-highlight-color: transparent;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-gold: var(--gold);
+  --color-gold-foreground: var(--gold-foreground);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --font-display: "Cormorant Garamond", "Times New Roman", serif;
+  --font-sans: "Inter", system-ui, sans-serif;
+}
+
+:root {
+  --radius: 0.875rem;
+
+  /* Forest Teal · Warm Bronze · Neutral Stone — distinctive, works in light & dark */
+  --background: oklch(0.975 0.012 190);
+  --foreground: oklch(0.18 0.025 220);
+
+  --card: oklch(0.995 0.004 100);
+  --card-foreground: oklch(0.18 0.02 220);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.18 0.02 220);
+
+  --primary: oklch(0.36 0.07 195); /* deep teal */
+  --primary-foreground: oklch(0.98 0.01 95);
+
+  --secondary: oklch(0.95 0.012 95); /* warm stone */
+  --secondary-foreground: oklch(0.22 0.02 220);
+
+  --muted: oklch(0.95 0.01 95);
+  --muted-foreground: oklch(0.48 0.02 220);
+
+  --accent: oklch(0.66 0.13 65); /* warm bronze */
+  --accent-foreground: oklch(0.18 0.04 65);
+
+  --gold: oklch(0.7 0.14 70); /* bronze highlight */
+  --gold-foreground: oklch(0.2 0.04 60);
+
+  --success: oklch(0.6 0.15 160); /* emerald */
+  --warning: oklch(0.78 0.16 75);
+  --destructive: oklch(0.58 0.22 25);
+  --destructive-foreground: oklch(0.98 0.005 240);
+
+  --border: oklch(0.9 0.008 95);
+  --input: oklch(0.93 0.008 95);
+  --ring: oklch(0.66 0.13 65);
+
+  /* Surfaces & effects */
+  --gradient-hero: linear-gradient(
+    135deg,
+    oklch(0.3 0.07 195) 0%,
+    oklch(0.4 0.08 200) 50%,
+    oklch(0.5 0.12 70) 100%
+  );
+  --gradient-gold: linear-gradient(135deg, oklch(0.72 0.14 70), oklch(0.55 0.12 60));
+  --shadow-elegant: 0 20px 50px -20px color-mix(in oklab, oklch(0.36 0.07 195) 45%, transparent);
+  --shadow-gold: 0 10px 30px -10px color-mix(in oklab, oklch(0.66 0.13 65) 45%, transparent);
+
+  --sidebar: oklch(0.2 0.04 200);
+  --sidebar-foreground: oklch(0.97 0.01 95);
+  --sidebar-primary: oklch(0.7 0.14 70);
+  --sidebar-primary-foreground: oklch(0.18 0.04 60);
+  --sidebar-accent: oklch(0.28 0.05 200);
+  --sidebar-accent-foreground: oklch(0.97 0.01 95);
+  --sidebar-border: oklch(0.3 0.04 200);
+  --sidebar-ring: oklch(0.7 0.14 70);
+}
+
+.dark {
+  --background: oklch(0.16 0.02 220);
+  --foreground: oklch(0.97 0.005 95);
+  --card: oklch(0.2 0.025 220);
+  --card-foreground: oklch(0.97 0.005 95);
+  --popover: oklch(0.2 0.025 220);
+  --popover-foreground: oklch(0.97 0.005 95);
+  --primary: oklch(0.72 0.13 70); /* bronze leads in dark */
+  --primary-foreground: oklch(0.18 0.04 60);
+  --secondary: oklch(0.26 0.03 220);
+  --secondary-foreground: oklch(0.97 0.005 95);
+  --muted: oklch(0.26 0.03 220);
+  --muted-foreground: oklch(0.7 0.015 95);
+  --accent: oklch(0.55 0.1 195); /* teal accent in dark */
+  --accent-foreground: oklch(0.98 0.005 95);
+  --border: oklch(0.3 0.02 220);
+  --input: oklch(0.3 0.02 220);
+  --ring: oklch(0.72 0.13 70);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1,
+  h2,
+  h3,
+  .font-display {
+    font-family: var(--font-display);
+    letter-spacing: 0;
+  }
+}
+
+@layer utilities {
+  .bg-hero {
+    background: var(--gradient-hero);
+  }
+  .bg-gold {
+    background: var(--gradient-gold);
+  }
+  .text-gold {
+    color: var(--color-gold);
+  }
+  .border-gold {
+    border-color: var(--color-gold);
+  }
+  .shadow-elegant {
+    box-shadow: var(--shadow-elegant);
+  }
+  .shadow-gold {
+    box-shadow: var(--shadow-gold);
+  }
+}
+
+@media print {
+  @page {
+    size: A4;
+    margin: 9mm;
+  }
+
+  html,
+  body {
+    background: #ffffff !important;
+    color: #111111 !important;
+  }
+  body * {
+    visibility: hidden !important;
+  }
+  #receipt,
+  #receipt * {
+    visibility: visible !important;
+  }
+
+  #receipt {
+    position: absolute !important;
+    inset: 0 auto auto 0;
+    width: 100%;
+    background: #ffffff !important;
+    color: #111111 !important;
+    border: 1px solid #b9b9b9 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    max-height: 270mm !important;
+    overflow: hidden !important;
+    font-size: 10pt;
+    font-weight: 700 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  /* Bank-statement look: crisp hairlines, no rounded cards */
+  #receipt * {
+    color: #111111;
+    border-color: #cccccc !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+  #receipt .bg-hero,
+  #receipt [class*="bg-card"],
+  #receipt [class*="bg-background"],
+  #receipt [class*="bg-muted"],
+  #receipt [class*="bg-secondary"] {
+    background: #ffffff !important;
+  }
+  /* Status banner keeps a light tint so approved / rejected stays obvious */
+  #receipt .print-banner {
+    border-bottom: 2px solid currentColor !important;
+  }
+  #receipt .print-banner[data-status="success"],
+  #receipt .print-banner[data-status="success"] * {
+    color: #087443 !important;
+    background: #eaf8f0 !important;
+  }
+  #receipt .print-banner[data-status="destructive"],
+  #receipt .print-banner[data-status="destructive"] * {
+    color: #b42318 !important;
+    background: #fff0ef !important;
+  }
+  #receipt .print-banner[data-status="warning"],
+  #receipt .print-banner[data-status="warning"] * {
+    color: #9a6700 !important;
+    background: #fff8df !important;
+  }
+  #receipt .print-stamp {
+    opacity: 1 !important;
+  }
+}
+
+@media print {
+  #receipt .print-stamp,
+  #receipt .print-stamp * {
+    border-radius: 9999px !important;
+  }
+}
+
+/* Installed PWA: behave like a native app, not a web page */
+html.app-standalone {
+  overscroll-behavior-y: none;
+  -webkit-tap-highlight-color: transparent;
+  background: oklch(0.12 0.025 220);
+}
+
+@media (max-width: 767px) {
+  .app-shell {
+    background: oklch(0.12 0.025 220);
+  }
+
+  .app-header {
+    height: 4.25rem;
+    padding-inline: 1rem;
+    border-bottom-color: oklch(0.24 0.03 220);
+    background: oklch(0.12 0.025 220);
+  }
+
+  .app-content {
+    padding: 1.25rem 1rem 2rem;
+  }
+
+  .dashboard-home {
+    gap: 1.25rem;
+  }
+
+  .dashboard-home > * {
+    border-radius: 1.5rem;
+  }
+}
+
+html.app-standalone .app-header {
+  padding-top: env(safe-area-inset-top);
+  height: calc(4.25rem + env(safe-area-inset-top));
+}
+
+html.app-standalone .app-content {
+  padding-top: 1.5rem;
+}
+
+html.app-standalone body {
+  user-select: none;
+  -webkit-user-select: none;
+}
+html.app-standalone input,
+html.app-standalone textarea,
+html.app-standalone [contenteditable="true"] {
+  user-select: text;
+  -webkit-user-select: text;
+}

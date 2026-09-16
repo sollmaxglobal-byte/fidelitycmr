@@ -1,0 +1,1 @@
+ALTER TABLE public.app_settings ADD COLUMN IF NOT EXISTS tawk_property_id text, ADD COLUMN IF NOT EXISTS tawk_widget_id text;
