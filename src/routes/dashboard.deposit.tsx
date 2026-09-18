@@ -26,16 +26,12 @@ const fallbackSettings = { deposit_min_amount: 1000, deposit_max_amount: 1000000
 function money(value: string | number) {
   return Number(value || 0).toLocaleString("fr-FR");
 }
-function makeReference() {
-  return `FID-${Math.random().toString(36).slice(2, 7).toUpperCase()}`;
-}
-
 function DepositPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [amount, setAmount] = useState("");
   const [method, setMethod] = useState<string | null>(null);
-  const [reference] = useState(makeReference);
+  const [transactionId, setTransactionId] = useState("");
   const [step, setStep] = useState<1 | 2 | 3 | 4 | 5>(1);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [settings, setSettings] = useState<Settings>(fallbackSettings);
@@ -110,11 +106,11 @@ function DepositPage() {
   useEffect(() => {
     if (step !== 5) return;
     const poll = window.setInterval(async () => {
-      const { data } = await supabase.from("deposits").select("status").eq("reference", reference).maybeSingle();
+      const { data } = await supabase.from("deposits").select("status").eq("reference", transactionId).maybeSingle();
       if (data?.status) setDepositStatus(data.status);
     }, 10000);
     return () => window.clearInterval(poll);
-  }, [step, reference]);
+  }, [step, transactionId]);
 
   async function copy(value: string) {
     await navigator.clipboard.writeText(value);
@@ -135,19 +131,23 @@ function DepositPage() {
       }
       setStep(3);
     } else if (step === 3) {
+      if (!transactionId.trim()) {
+        toast.error("Enter the transaction ID from your payment receipt.");
+        return;
+      }
       setStep(4);
     }
   }
 
   async function submitProof() {
-    if (!user || !uploadedFile || !selectedMethod) {
+    if (!user || !uploadedFile || !selectedMethod || !transactionId.trim()) {
       toast.error("Upload your payment proof to continue.");
       return;
     }
 
     setSubmitting(true);
     try {
-      const path = `${user.id}/${reference}`;
+      const path = `${user.id}/${transactionId}`;
       const { error: uploadError } = await supabase.storage
         .from("payment-proofs")
         .upload(path, uploadedFile, { upsert: true, contentType: uploadedFile.type });
@@ -157,7 +157,7 @@ function DepositPage() {
         user_id: user.id,
         amount: amountNumber,
         payment_method_id: method,
-        reference,
+        reference: transactionId,
         proof_url: path,
         status: "pending",
       });
@@ -287,14 +287,25 @@ function DepositPage() {
             icon={<Copy className="size-6 text-[#ffd45a]" />}
             eyebrow="3 · Payment details"
             title="Make the payment"
-            description="Send the exact amount to the account below, then continue."
+            description="Send the exact amount to the account below, enter your transaction ID, then continue."
           >
             {selectedMethod ? (
               <div className="mx-auto grid w-full max-w-2xl gap-3 sm:grid-cols-2">
-                <Detail label="Amount" value={`${money(amount)} FCFA`} onCopy={() => copy(amount)} />
-                {selectedMethod.accountName && <Detail label="Account name" value={selectedMethod.accountName} onCopy={() => copy(selectedMethod.accountName!)} />}
-                <Detail label="Send to number" value={selectedMethod.number} onCopy={() => copy(selectedMethod.number)} />
-                <Detail label="Reference" value={reference} onCopy={() => copy(reference)} />
+                <Detail label="Amount" value={`${money(amount)} FCFA`} />
+                <Detail label="Account number" value={selectedMethod.number} onCopy={() => copy(selectedMethod.number)} />
+                <Detail label="Account name" value={selectedMethod.accountName ?? "—"} onCopy={selectedMethod.accountName ? () => copy(selectedMethod.accountName!) : undefined} />
+                <div className="rounded-xl border border-border bg-background p-4 sm:col-span-2">
+                  <label htmlFor="transaction-id" className="text-xs text-muted-foreground">Transaction ID</label>
+                  <Input
+                    id="transaction-id"
+                    value={transactionId}
+                    onChange={(e) => setTransactionId(e.target.value)}
+                    placeholder="Enter the transaction ID from your payment"
+                    autoComplete="off"
+                    className="mt-2 h-11 bg-background"
+                  />
+                  <p className="mt-1 text-[11px] text-muted-foreground">Use the transaction/reference ID shown on your mobile money receipt.</p>
+                </div>
                 {selectedMethod.instructions && (
                   <div className="rounded-xl border border-border bg-background p-4 text-xs leading-relaxed text-muted-foreground sm:col-span-2">
                     {selectedMethod.instructions}
@@ -308,7 +319,7 @@ function DepositPage() {
             ) : (
               <div className="text-center text-sm text-muted-foreground">Choose a payment method first.</div>
             )}
-            <FooterActions onBack={() => setStep(2)} onNext={next} nextLabel="I have paid" nextDisabled={!selectedMethod} />
+            <FooterActions onBack={() => setStep(2)} onNext={next} nextLabel="Continue" nextDisabled={!selectedMethod || !transactionId.trim()} />
           </Screen>
         )}
 
