@@ -1,66 +1,105 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { AnimatePresence, motion } from "framer-motion";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { ArrowLeft, ArrowRight, Check, Clock3, Copy, FileImage, ShieldCheck, Smartphone, Upload, Wallet, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 
 export const Route = createFileRoute("/dashboard/deposit")({ component: DepositPage });
 
-type MethodId = string;
-type Method = { id: MethodId; name: string; number: string; enabled: boolean; color: string; instructions?: string; accountName?: string };
+type Method = {
+  id: string;
+  name: string;
+  number: string;
+  enabled: boolean;
+  color: string;
+  instructions?: string;
+  accountName?: string;
+};
 type Settings = { deposit_min_amount?: number; deposit_max_amount?: number };
-const QUICK_AMOUNTS = [5000, 10000, 25000, 50000, 100000, 200000];
-const fallbackSettings: Required<Pick<Settings, "deposit_min_amount" | "deposit_max_amount">> = { deposit_min_amount: 1000, deposit_max_amount: 10000000 };
 
-function money(value: string | number) { return Number(value || 0).toLocaleString("fr-FR"); }
-function makeReference() { return `FID-${Math.random().toString(36).slice(2, 7).toUpperCase()}`; }
-function methodName(method: Method | undefined) { return method?.name ?? "Mobile Money"; }
+const QUICK_AMOUNTS = [5000, 10000, 25000, 50000, 100000, 200000];
+const fallbackSettings = { deposit_min_amount: 1000, deposit_max_amount: 10000000 };
+
+function money(value: string | number) {
+  return Number(value || 0).toLocaleString("fr-FR");
+}
+function makeReference() {
+  return `FID-${Math.random().toString(36).slice(2, 7).toUpperCase()}`;
+}
 
 function DepositPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [amount, setAmount] = useState("");
-  const [method, setMethod] = useState<MethodId | null>(null);
+  const [method, setMethod] = useState<string | null>(null);
   const [reference] = useState(makeReference);
   const [step, setStep] = useState<1 | 2 | 3 | 4 | 5>(1);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [settings, setSettings] = useState<Settings>(fallbackSettings);
+  const [activeMethods, setActiveMethods] = useState<Method[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [remaining, setRemaining] = useState(900);
   const [depositStatus, setDepositStatus] = useState("pending");
 
-  const [activeMethods, setActiveMethods] = useState<Method[]>([]);
   const selectedMethod = activeMethods.find((m) => m.id === method);
   const amountNumber = Number(amount);
   const minAmount = Number(settings.deposit_min_amount ?? fallbackSettings.deposit_min_amount);
   const maxAmount = Number(settings.deposit_max_amount ?? fallbackSettings.deposit_max_amount);
-  const amountError = amount && (amountNumber < minAmount || amountNumber > maxAmount) ? `Enter an amount between ${money(minAmount)} and ${money(maxAmount)} FCFA.` : "";
+  const amountError =
+    amount && (amountNumber < minAmount || amountNumber > maxAmount)
+      ? `Enter an amount between ${money(minAmount)} and ${money(maxAmount)} FCFA.`
+      : "";
 
   useEffect(() => {
     let mounted = true;
     (async () => {
-      const [{ data: settingsData, error: settingsError }, { data: methodsData, error: methodsError }] = await Promise.all([
-        supabase.from("app_settings").select("deposit_min_amount, deposit_max_amount").eq("id", 1).maybeSingle(),
-        supabase.from("payment_methods").select("id, label, account_name, account_number, instructions, active, scope").eq("active", true).in("scope", ["deposit", "both"]).order("type"),
-      ]);
+      const [{ data: settingsData, error: settingsError }, { data: methodsData, error: methodsError }] =
+        await Promise.all([
+          supabase.from("app_settings").select("deposit_min_amount, deposit_max_amount").eq("id", 1).maybeSingle(),
+          supabase
+            .from("payment_methods")
+            .select("id, label, account_name, account_number, instructions, active, scope")
+            .eq("active", true)
+            .in("scope", ["deposit", "both"])
+            .order("type"),
+        ]);
+
       if (settingsError) toast.error("Could not load deposit settings.");
       if (methodsError) toast.error("Could not load payment methods.");
       if (mounted && settingsData) setSettings(settingsData as Settings);
-      if (mounted && methodsData) setActiveMethods(methodsData.map((item) => ({ id: item.id, name: item.label, number: item.account_number ?? "", enabled: item.active, color: item.label.toLowerCase().includes("orange") ? "#FF7900" : item.label.toLowerCase().includes("mtn") ? "#FFCC00" : "#0f766e", instructions: item.instructions ?? undefined, accountName: item.account_name ?? undefined })).filter((item) => item.number));
-      setLoading(false);
+      if (mounted && methodsData) {
+        setActiveMethods(
+          methodsData
+            .map((item) => ({
+              id: item.id,
+              name: item.label,
+              number: item.account_number ?? "",
+              enabled: item.active,
+              color: item.label.toLowerCase().includes("orange")
+                ? "#FF7900"
+                : item.label.toLowerCase().includes("mtn")
+                  ? "#FFCC00"
+                  : "#0f766e",
+              instructions: item.instructions ?? undefined,
+              accountName: item.account_name ?? undefined,
+            }))
+            .filter((item) => item.number),
+        );
+      }
+      if (mounted) setLoading(false);
     })();
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   useEffect(() => {
-    if (step === 2 && activeMethods.length === 1) setMethod(activeMethods[0].id);
-  }, [step, activeMethods]);
+    if (step === 2 && activeMethods.length === 1 && !method) setMethod(activeMethods[0].id);
+  }, [step, activeMethods, method]);
 
   useEffect(() => {
     if (step !== 3 || remaining <= 0) return;
@@ -69,7 +108,7 @@ function DepositPage() {
   }, [step, remaining]);
 
   useEffect(() => {
-    if (step !== 5 || !reference) return;
+    if (step !== 5) return;
     const poll = window.setInterval(async () => {
       const { data } = await supabase.from("deposits").select("status").eq("reference", reference).maybeSingle();
       if (data?.status) setDepositStatus(data.status);
@@ -77,19 +116,43 @@ function DepositPage() {
     return () => window.clearInterval(poll);
   }, [step, reference]);
 
-  async function copy(value: string) { await navigator.clipboard.writeText(value); toast.success("Copied to clipboard"); }
-  function next() {
-    if (step === 1) { if (!amount || amountNumber < minAmount || amountNumber > maxAmount) { toast.error(amountError || "Enter a valid amount."); return; } setStep(2); }
-    else if (step === 2) { if (!method) { toast.error("Choose an active payment method."); return; } setStep(3); }
-    else if (step === 3) setStep(4);
+  async function copy(value: string) {
+    await navigator.clipboard.writeText(value);
+    toast.success("Copied to clipboard");
   }
+
+  function next() {
+    if (step === 1) {
+      if (!amount || amountNumber < minAmount || amountNumber > maxAmount) {
+        toast.error(amountError || "Enter a valid amount.");
+        return;
+      }
+      setStep(2);
+    } else if (step === 2) {
+      if (!method) {
+        toast.error("Choose an active payment method.");
+        return;
+      }
+      setStep(3);
+    } else if (step === 3) {
+      setStep(4);
+    }
+  }
+
   async function submitProof() {
-    if (!user || !uploadedFile || !selectedMethod) { toast.error("Upload your payment proof to continue."); return; }
+    if (!user || !uploadedFile || !selectedMethod) {
+      toast.error("Upload your payment proof to continue.");
+      return;
+    }
+
     setSubmitting(true);
     try {
       const path = `${user.id}/${reference}`;
-      const { error: uploadError } = await supabase.storage.from("payment-proofs").upload(path, uploadedFile, { upsert: true, contentType: uploadedFile.type });
+      const { error: uploadError } = await supabase.storage
+        .from("payment-proofs")
+        .upload(path, uploadedFile, { upsert: true, contentType: uploadedFile.type });
       if (uploadError) throw uploadError;
+
       const { error } = await supabase.from("deposits").insert({
         user_id: user.id,
         amount: amountNumber,
@@ -99,85 +162,299 @@ function DepositPage() {
         status: "pending",
       });
       if (error) throw error;
-      setStep(5); toast.success("Proof uploaded successfully");
-    } catch (error) { console.error("[v0] Deposit submission failed", error); toast.error(error instanceof Error ? error.message : "Could not submit your deposit."); }
-    finally { setSubmitting(false); }
+
+      setStep(5);
+      toast.success("Proof uploaded successfully");
+    } catch (error) {
+      console.error("[deposit] submission failed", error);
+      toast.error(error instanceof Error ? error.message : "Could not submit your deposit.");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   const timer = `${String(Math.floor(remaining / 60)).padStart(2, "0")}:${String(remaining % 60).padStart(2, "0")}`;
-  const steps = ["Amount", "Method", "Payment", "Proof", "Processing"];
-  if (loading) return <div className="mx-auto max-w-xl py-16 text-center text-muted-foreground">Loading deposit options…</div>;
+  const progress = step === 5 ? 100 : (step / 5) * 100;
+
+  if (loading) {
+    return (
+      <main className="flex h-[calc(100dvh-4rem)] items-center justify-center overflow-hidden bg-[#101014] text-[#f8f7f2]">
+        <p className="text-sm text-muted-foreground">Loading deposit options…</p>
+      </main>
+    );
+  }
 
   return (
-    <main className="mx-auto flex h-[calc(100dvh-4rem)] min-h-0 w-full max-w-6xl flex-col overflow-hidden bg-[#101014] px-3 py-2 text-[#f8f7f2] sm:px-4">
-      <header className="flex shrink-0 items-center justify-between gap-3 border-b border-[#303039] pb-2">
+    <main className="mx-auto flex h-[calc(100dvh-4rem)] min-h-0 w-full max-w-4xl flex-col overflow-hidden bg-[#101014] px-3 py-3 text-[#f8f7f2] sm:px-6">
+      <header className="flex shrink-0 items-center justify-between gap-3 border-b border-[#303039] pb-3">
         <div className="min-w-0">
           <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#ffd45a]">Secure deposit</p>
           <h1 className="font-display text-xl font-bold sm:text-2xl">Fund your wallet</h1>
-          <p className="hidden text-xs text-[#a9a9b0] sm:block">Everything you need is on this page — no steps or scrolling.</p>
         </div>
         <ShieldCheck className="size-6 shrink-0 text-[#ffd45a]" />
       </header>
 
-      <section className="grid min-h-0 flex-1 grid-cols-1 gap-2 py-2 lg:grid-cols-[0.9fr_1.1fr]">
-        <div className="grid min-h-0 grid-rows-[auto_auto_1fr] gap-2">
-          <div className="rounded-xl border border-[#3c3c47] bg-[#141419] p-3">
-            <div className="mb-2 flex items-center justify-between">
-              <div><p className="text-[10px] uppercase tracking-wider text-muted-foreground">1 · Amount</p><p className="text-sm font-semibold">How much?</p></div>
-              <Wallet className="size-5 text-[#ffd45a]" />
-            </div>
-            <div className="relative">
-              <Input id="deposit-amount" value={amount} onChange={(e) => setAmount(e.target.value.replace(/\D/g, ""))} placeholder="0" inputMode="numeric" className="h-12 border-border bg-background pr-16 text-xl font-bold" aria-invalid={!!amountError} />
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-muted-foreground">FCFA</span>
-            </div>
-            <div className="mt-1 flex items-center justify-between text-[10px] text-muted-foreground"><span>Min {money(minAmount)}</span><span>Max {money(maxAmount)}</span></div>
-            {amountError && <p className="mt-1 text-xs text-destructive">{amountError}</p>}
-            <div className="mt-2 flex gap-1.5 overflow-hidden">{QUICK_AMOUNTS.slice(0, 6).map((value) => <Button key={value} type="button" size="sm" variant={amountNumber === value ? "default" : "outline"} className="h-7 flex-1 px-1 text-[10px]" onClick={() => setAmount(String(value))}>{money(value)}</Button>)}</div>
-          </div>
-
-          <div className="min-h-0 rounded-xl border border-[#3c3c47] bg-[#141419] p-3">
-            <div className="mb-2 flex items-center justify-between"><div><p className="text-[10px] uppercase tracking-wider text-muted-foreground">2 · Payment method</p><p className="text-sm font-semibold">Choose where to send</p></div><Smartphone className="size-5 text-[#ffd45a]" /></div>
-            {activeMethods.length === 0 ? <div className="flex h-20 items-center justify-center rounded-lg border border-dashed border-border text-center text-xs text-muted-foreground">No active payment methods available.</div> : <div className="grid max-h-28 grid-cols-2 gap-1.5 overflow-hidden sm:grid-cols-3">{activeMethods.map((item) => <button key={item.id} type="button" onClick={() => { setMethod(item.id); setStep(3); }} className={`flex min-w-0 items-center gap-2 rounded-lg border p-2 text-left transition ${method === item.id ? "border-primary bg-primary/10" : "border-border hover:border-primary/50"}`}><span className="flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-background">{item.name.toLowerCase().includes("mtn") ? <img src="https://cdn.jsdelivr.net/gh/glincker/thesvg@main/public/icons/mtn-mobile-money/default.svg" alt="" className="size-7 object-contain" /> : item.name.toLowerCase().includes("orange") ? <span className="flex size-full items-center justify-center text-[9px] font-black">OM</span> : <Smartphone className="size-4 text-primary" />}</span><span className="min-w-0 flex-1 truncate text-xs font-semibold">{item.name}</span>{method === item.id && <Check className="size-4 shrink-0 text-primary" />}</button>)}</div>}
-          </div>
-
-          <div className="min-h-0 rounded-xl border border-[#3c3c47] bg-[#141419] p-3">
-            <div className="mb-2 flex items-center justify-between"><div><p className="text-[10px] uppercase tracking-wider text-muted-foreground">3 · Payment details</p><p className="text-sm font-semibold">Send the exact amount</p></div>{selectedMethod && <span className="rounded-full bg-primary/10 px-2 py-1 text-[10px] text-primary">{selectedMethod.name}</span>}</div>
-            {selectedMethod ? <div className="grid grid-cols-2 gap-1.5">
-              <Detail label="Amount" value={`${money(amount || 0)} FCFA`} onCopy={() => copy(amount)} />
-              {selectedMethod.accountName && <Detail label="Account name" value={selectedMethod.accountName} onCopy={() => copy(selectedMethod.accountName!)} />}
-              <Detail label="Send to number" value={selectedMethod.number} onCopy={() => copy(selectedMethod.number)} />
-              {selectedMethod.instructions && <div className="col-span-2 rounded-lg bg-primary/5 p-2 text-[10px] leading-relaxed text-muted-foreground">{selectedMethod.instructions}</div>}
-            </div> : <div className="flex h-20 items-center justify-center rounded-lg bg-background text-center text-xs text-muted-foreground">Select a payment method above to see the account details.</div>}
-          </div>
+      <div className="shrink-0 py-2">
+        <div className="mb-1.5 flex items-center justify-between text-[10px] text-muted-foreground">
+          <span>Step {step} of 5</span>
+          <span>{step === 5 ? "Complete" : "Deposit flow"}</span>
         </div>
-
-        <div className="grid min-h-0 grid-rows-[1fr_auto] gap-2">
-          <div className="min-h-0 rounded-xl border border-[#3c3c47] bg-[#141419] p-3">
-            <div className="mb-2 flex items-center justify-between"><div><p className="text-[10px] uppercase tracking-wider text-muted-foreground">4 · Payment proof</p><p className="text-sm font-semibold">Upload your screenshot</p></div><Upload className="size-5 text-[#ffd45a]" /></div>
-            <label htmlFor="proof" className="flex h-[calc(100%-2.5rem)] min-h-32 cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-primary/50 bg-primary/5 p-3 text-center">
-              {uploadedFile ? <><FileImage className="size-8 text-primary" /><span className="max-w-full truncate text-xs font-semibold">{uploadedFile.name}</span><span className="text-[10px] text-muted-foreground">Tap to replace</span></> : <><Upload className="size-8 text-primary" /><span className="text-sm font-semibold">Upload screenshot</span><span className="text-[10px] text-muted-foreground">PNG, JPG or WEBP · maximum 5MB</span></>}
-              <Input id="proof" type="file" accept="image/png,image/jpeg,image/webp" className="sr-only" onChange={(e) => { const file = e.target.files?.[0]; if (file && file.size > 5 * 1024 * 1024) toast.error("File must be smaller than 5MB."); else setUploadedFile(file ?? null); }} />
-            </label>
-            {uploadedFile && <div className="mt-2 flex items-center gap-2 rounded-lg border border-border p-2"><FileImage className="size-4 text-primary" /><span className="min-w-0 flex-1 truncate text-xs">{uploadedFile.name}</span><Button size="icon" variant="ghost" className="size-7" onClick={() => setUploadedFile(null)} aria-label="Remove proof"><X className="size-4" /></Button></div>}
-          </div>
-
-          <div className="rounded-xl border border-primary/20 bg-primary/5 p-3">
-            <div className="grid grid-cols-3 gap-2 text-[10px]">
-              <div><span className="text-muted-foreground">Reference</span><p className="truncate font-mono font-semibold">{reference}</p></div>
-              <div><span className="text-muted-foreground">Status</span><p className="font-semibold">{depositStatus === "pending" ? "Ready for review" : depositStatus}</p></div>
-              <div><span className="text-muted-foreground">Security</span><p className="font-semibold">Encrypted</p></div>
-            </div>
-            <Button onClick={submitProof} disabled={!uploadedFile || !selectedMethod || !amount || !!amountError || submitting} className="mt-2 h-11 w-full text-sm font-bold">
-              {submitting ? "Submitting…" : `Submit ${money(amount || 0)} FCFA deposit`} <Check data-icon="inline-end" />
-            </Button>
-            <p className="mt-1 text-center text-[9px] text-muted-foreground">By submitting, you confirm the payment screenshot is genuine.</p>
-          </div>
+        <div className="h-1 overflow-hidden rounded-full bg-[#2b2b33]">
+          <div className="h-full rounded-full bg-primary transition-all duration-300" style={{ width: `${progress}%` }} />
         </div>
+      </div>
+
+      <section className="min-h-0 flex-1 overflow-hidden py-2">
+        {step === 1 && (
+          <Screen
+            icon={<Wallet className="size-6 text-[#ffd45a]" />}
+            eyebrow="1 · Amount"
+            title="How much do you want to deposit?"
+            description="Enter the amount you want credited to your wallet."
+          >
+            <div className="mx-auto w-full max-w-md">
+              <div className="relative">
+                <Input
+                  id="deposit-amount"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value.replace(/\D/g, ""))}
+                  placeholder="0"
+                  inputMode="numeric"
+                  autoFocus
+                  className="h-16 border-border bg-background pr-20 text-2xl font-bold"
+                  aria-invalid={!!amountError}
+                />
+                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-semibold text-muted-foreground">FCFA</span>
+              </div>
+              <div className="mt-2 flex justify-between text-[10px] text-muted-foreground">
+                <span>Minimum {money(minAmount)} FCFA</span>
+                <span>Maximum {money(maxAmount)} FCFA</span>
+              </div>
+              {amountError && <p className="mt-2 text-xs text-destructive">{amountError}</p>}
+              <div className="mt-4 grid grid-cols-3 gap-2">
+                {QUICK_AMOUNTS.map((value) => (
+                  <Button key={value} type="button" variant={amountNumber === value ? "default" : "outline"} className="h-9 text-xs" onClick={() => setAmount(String(value))}>
+                    {money(value)}
+                  </Button>
+                ))}
+              </div>
+            </div>
+            <FooterActions onNext={next} nextLabel="Continue" />
+          </Screen>
+        )}
+
+        {step === 2 && (
+          <Screen
+            icon={<Smartphone className="size-6 text-[#ffd45a]" />}
+            eyebrow="2 · Payment method"
+            title="Choose a payment method"
+            description={`Deposit amount: ${money(amount)} FCFA`}
+          >
+            {activeMethods.length === 0 ? (
+              <div className="mx-auto max-w-md rounded-xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
+                No active payment methods are available right now.
+              </div>
+            ) : (
+              <div className="mx-auto grid w-full max-w-2xl grid-cols-1 gap-3 sm:grid-cols-2">
+                {activeMethods.map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => setMethod(item.id)}
+                    className={`flex h-20 items-center gap-3 rounded-xl border p-4 text-left transition ${method === item.id ? "border-primary bg-primary/10" : "border-border bg-[#141419] hover:border-primary/50"}`}
+                  >
+                    <span className="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-background">
+                      {item.name.toLowerCase().includes("mtn") ? (
+                        <img src="https://cdn.jsdelivr.net/gh/glincker/thesvg@main/public/icons/mtn-mobile-money/default.svg" alt="" className="size-8 object-contain" />
+                      ) : item.name.toLowerCase().includes("orange") ? (
+                        <span className="text-[10px] font-black">OM</span>
+                      ) : (
+                        <Smartphone className="size-5 text-primary" />
+                      )}
+                    </span>
+                    <span className="min-w-0 flex-1 truncate text-sm font-semibold">{item.name}</span>
+                    {method === item.id && <Check className="size-5 shrink-0 text-primary" />}
+                  </button>
+                ))}
+              </div>
+            )}
+            <FooterActions onBack={() => setStep(1)} onNext={next} nextLabel="Continue" nextDisabled={!method} />
+          </Screen>
+        )}
+
+        {step === 3 && (
+          <Screen
+            icon={<Copy className="size-6 text-[#ffd45a]" />}
+            eyebrow="3 · Payment details"
+            title="Make the payment"
+            description="Send the exact amount to the account below, then continue."
+          >
+            {selectedMethod ? (
+              <div className="mx-auto grid w-full max-w-2xl gap-3 sm:grid-cols-2">
+                <Detail label="Amount" value={`${money(amount)} FCFA`} onCopy={() => copy(amount)} />
+                {selectedMethod.accountName && <Detail label="Account name" value={selectedMethod.accountName} onCopy={() => copy(selectedMethod.accountName!)} />}
+                <Detail label="Send to number" value={selectedMethod.number} onCopy={() => copy(selectedMethod.number)} />
+                <Detail label="Reference" value={reference} onCopy={() => copy(reference)} />
+                {selectedMethod.instructions && (
+                  <div className="rounded-xl border border-border bg-background p-4 text-xs leading-relaxed text-muted-foreground sm:col-span-2">
+                    {selectedMethod.instructions}
+                  </div>
+                )}
+                <div className="flex items-center justify-center gap-2 rounded-xl border border-primary/20 bg-primary/5 p-3 text-xs sm:col-span-2">
+                  <Clock3 className="size-4 text-primary" />
+                  Payment window: <span className="font-mono font-bold">{timer}</span>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center text-sm text-muted-foreground">Choose a payment method first.</div>
+            )}
+            <FooterActions onBack={() => setStep(2)} onNext={next} nextLabel="I have paid" nextDisabled={!selectedMethod} />
+          </Screen>
+        )}
+
+        {step === 4 && (
+          <Screen
+            icon={<Upload className="size-6 text-[#ffd45a]" />}
+            eyebrow="4 · Payment proof"
+            title="Upload your payment screenshot"
+            description="Upload a clear screenshot showing the completed payment."
+          >
+            <div className="mx-auto w-full max-w-xl">
+              <label htmlFor="proof" className="flex h-48 cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-primary/50 bg-primary/5 p-4 text-center sm:h-56">
+                {uploadedFile ? (
+                  <>
+                    <FileImage className="size-10 text-primary" />
+                    <span className="max-w-full truncate text-sm font-semibold">{uploadedFile.name}</span>
+                    <span className="text-xs text-muted-foreground">Tap to replace</span>
+                  </>
+                ) : (
+                  <>
+                    <Upload className="size-10 text-primary" />
+                    <span className="text-sm font-semibold">Upload screenshot</span>
+                    <span className="text-xs text-muted-foreground">PNG, JPG or WEBP · maximum 5MB</span>
+                  </>
+                )}
+                <Input
+                  id="proof"
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp"
+                  className="sr-only"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file && file.size > 5 * 1024 * 1024) {
+                      toast.error("File must be smaller than 5MB.");
+                      return;
+                    }
+                    setUploadedFile(file ?? null);
+                  }}
+                />
+              </label>
+              {uploadedFile && (
+                <div className="mt-3 flex items-center gap-2 rounded-lg border border-border p-2">
+                  <FileImage className="size-4 text-primary" />
+                  <span className="min-w-0 flex-1 truncate text-xs">{uploadedFile.name}</span>
+                  <Button type="button" size="icon" variant="ghost" className="size-7" onClick={() => setUploadedFile(null)} aria-label="Remove proof">
+                    <X className="size-4" />
+                  </Button>
+                </div>
+              )}
+            </div>
+            <FooterActions onBack={() => setStep(3)} onNext={submitProof} nextLabel={submitting ? "Submitting…" : "Submit deposit"} nextDisabled={!uploadedFile || submitting} />
+          </Screen>
+        )}
+
+        {step === 5 && (
+          <Screen
+            icon={<Check className="size-6 text-[#ffd45a]" />}
+            eyebrow="5 · Processing"
+            title={depositStatus === "pending" ? "Deposit submitted" : `Deposit ${depositStatus}`}
+            description="Your proof has been submitted for review. Keep your reference until the deposit is confirmed."
+          >
+            <div className="mx-auto grid w-full max-w-xl gap-3 sm:grid-cols-2">
+              <Detail label="Amount" value={`${money(amount)} FCFA`} />
+              <Detail label="Reference" value={reference} onCopy={() => copy(reference)} />
+              <Detail label="Payment method" value={selectedMethod?.name ?? "—"} />
+              <Detail label="Status" value={depositStatus === "pending" ? "Pending review" : depositStatus} />
+            </div>
+            <div className="mt-4 flex justify-center">
+              <Button onClick={() => navigate({ to: "/dashboard" })} className="h-11 px-8">
+                Back to dashboard <ArrowRight data-icon="inline-end" />
+              </Button>
+            </div>
+          </Screen>
+        )}
       </section>
     </main>
   );
 }
 
-function Detail({ label, value, onCopy, hint }: { label: string; value: string; onCopy?: () => void; hint?: string }) { return <div className="flex items-center gap-3 rounded-2xl border border-border bg-background p-4"><div className="min-w-0 flex-1"><p className="text-xs text-muted-foreground">{label}</p><p className="mt-1 truncate font-semibold">{value}</p>{hint && <p className="mt-1 text-xs text-muted-foreground">{hint}</p>}</div>{onCopy && <Button size="icon" variant="ghost" onClick={onCopy} aria-label={`Copy ${label}`}><Copy /></Button>}</div>; }
+function Screen({
+  icon,
+  eyebrow,
+  title,
+  description,
+  children,
+}: {
+  icon: React.ReactNode;
+  eyebrow: string;
+  title: string;
+  description: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-[#303039] bg-[#141419] p-4 sm:p-6">
+      <div className="shrink-0 text-center">
+        <div className="mx-auto mb-2 flex size-11 items-center justify-center rounded-full bg-primary/10">{icon}</div>
+        <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">{eyebrow}</p>
+        <h2 className="mt-1 text-xl font-bold sm:text-2xl">{title}</h2>
+        <p className="mx-auto mt-1 max-w-xl text-xs text-muted-foreground sm:text-sm">{description}</p>
+      </div>
+      <div className="flex min-h-0 flex-1 flex-col justify-center overflow-hidden py-4">{children}</div>
+    </div>
+  );
+}
 
-export function StatusBadge({ status }: { status: string }) { return <span className="rounded-full bg-muted px-2.5 py-1 text-xs font-medium">{status}</span>; }
+function FooterActions({
+  onBack,
+  onNext,
+  nextLabel,
+  nextDisabled,
+}: {
+  onBack?: () => void;
+  onNext: () => void;
+  nextLabel: string;
+  nextDisabled?: boolean;
+}) {
+  return (
+    <div className="mt-auto flex shrink-0 gap-2 border-t border-border pt-3">
+      {onBack && (
+        <Button type="button" variant="outline" onClick={onBack} className="h-11 flex-1">
+          <ArrowLeft data-icon="inline-start" /> Back
+        </Button>
+      )}
+      <Button type="button" onClick={onNext} disabled={nextDisabled} className="h-11 flex-1 font-bold">
+        {nextLabel} <ArrowRight data-icon="inline-end" />
+      </Button>
+    </div>
+  );
+}
+
+function Detail({ label, value, onCopy }: { label: string; value: string; onCopy?: () => void }) {
+  return (
+    <div className="flex min-w-0 items-center gap-3 rounded-xl border border-border bg-background p-4">
+      <div className="min-w-0 flex-1">
+        <p className="text-xs text-muted-foreground">{label}</p>
+        <p className="mt-1 truncate text-sm font-semibold">{value}</p>
+      </div>
+      {onCopy && (
+        <Button type="button" size="icon" variant="ghost" onClick={onCopy} aria-label={`Copy ${label}`}>
+          <Copy className="size-4" />
+        </Button>
+      )}
+    </div>
+  );
+}
+
+export function StatusBadge({ status }: { status: string }) {
+  return <span className="rounded-full bg-muted px-2.5 py-1 text-xs font-medium">{status}</span>;
+}
