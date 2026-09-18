@@ -131,16 +131,12 @@ function DepositPage() {
       }
       setStep(3);
     } else if (step === 3) {
-      if (!transactionId.trim()) {
-        toast.error("Enter the transaction ID from your payment receipt.");
-        return;
-      }
       setStep(4);
     }
   }
 
   async function submitProof() {
-    if (!user || !uploadedFile || !selectedMethod || !transactionId.trim()) {
+    if (!user || !uploadedFile || !selectedMethod) {
       toast.error("Upload your payment proof to continue.");
       return;
     }
@@ -287,25 +283,13 @@ function DepositPage() {
             icon={<Copy className="size-6 text-[#ffd45a]" />}
             eyebrow="3 · Payment details"
             title="Make the payment"
-            description="Send the exact amount to the account below, enter your transaction ID, then continue."
+            description="Send the exact amount to the account below, then continue."
           >
             {selectedMethod ? (
               <div className="mx-auto grid w-full max-w-2xl gap-3 sm:grid-cols-2">
                 <Detail label="Amount" value={`${money(amount)} FCFA`} />
                 <Detail label="Account number" value={selectedMethod.number} onCopy={() => copy(selectedMethod.number)} />
                 <Detail label="Account name" value={selectedMethod.accountName ?? "—"} onCopy={selectedMethod.accountName ? () => copy(selectedMethod.accountName!) : undefined} />
-                <div className="rounded-xl border border-border bg-background p-4 sm:col-span-2">
-                  <label htmlFor="transaction-id" className="text-xs text-muted-foreground">Transaction ID</label>
-                  <Input
-                    id="transaction-id"
-                    value={transactionId}
-                    onChange={(e) => setTransactionId(e.target.value)}
-                    placeholder="Enter the transaction ID from your payment"
-                    autoComplete="off"
-                    className="mt-2 h-11 bg-background"
-                  />
-                  <p className="mt-1 text-[11px] text-muted-foreground">Use the transaction/reference ID shown on your mobile money receipt.</p>
-                </div>
                 {selectedMethod.instructions && (
                   <div className="rounded-xl border border-border bg-background p-4 text-xs leading-relaxed text-muted-foreground sm:col-span-2">
                     {selectedMethod.instructions}
@@ -319,7 +303,7 @@ function DepositPage() {
             ) : (
               <div className="text-center text-sm text-muted-foreground">Choose a payment method first.</div>
             )}
-            <FooterActions onBack={() => setStep(2)} onNext={next} nextLabel="Continue" nextDisabled={!selectedMethod || !transactionId.trim()} />
+            <FooterActions onBack={() => setStep(2)} onNext={next} nextLabel="Continue" nextDisabled={!selectedMethod} />
           </Screen>
         )}
 
