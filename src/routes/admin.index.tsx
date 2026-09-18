@@ -29,39 +29,31 @@ function AdminOverview() {
   });
 
   useEffect(() => {
+    let cancelled = false;
+
     (async () => {
-      const [u, pd, pw, ai, td, tw] = await Promise.all([
-        supabase.from("profiles").select("*", { count: "exact", head: true }),
-        supabase
-          .from("deposits")
-          .select("*", { count: "exact", head: true })
-          .eq("status", "pending"),
-        supabase
-          .from("withdrawals")
-          .select("*", { count: "exact", head: true })
-          .eq("status", "pending"),
-        supabase
-          .from("investments")
-          .select("*", { count: "exact", head: true })
-          .eq("status", "active"),
-        supabase.from("deposits").select("amount").eq("status", "approved"),
-        supabase.from("withdrawals").select("amount").in("status", ["approved", "paid"]),
-      ]);
-      const failed = [u, pd, pw, ai, td, tw].find((result) => result.error);
-      if (failed?.error) {
-        console.error("[v0] Failed to load admin overview", failed.error);
-        toast.error(`Unable to load admin overview: ${failed.error.message}`);
+      const { data, error } = await supabase.rpc("admin_dashboard_stats");
+      if (cancelled) return;
+      if (error) {
+        console.error("[admin] Failed to load overview", error);
+        toast.error(`Unable to load admin overview: ${error.message}`);
         return;
       }
+
+      const stats = (data ?? {}) as Record<string, number | null>;
       setS({
-        users: u.count ?? 0,
-        pendingDeposits: pd.count ?? 0,
-        pendingWithdrawals: pw.count ?? 0,
-        activeInvestments: ai.count ?? 0,
-        totalDeposited: (td.data ?? []).reduce((a, r) => a + Number(r.amount), 0),
-        totalWithdrawn: (tw.data ?? []).reduce((a, r) => a + Number(r.amount), 0),
+        users: Number(stats.users ?? 0),
+        pendingDeposits: Number(stats.pending_deposits ?? 0),
+        pendingWithdrawals: Number(stats.pending_withdrawals ?? 0),
+        activeInvestments: Number(stats.active_investments ?? 0),
+        totalDeposited: Number(stats.total_deposited ?? 0),
+        totalWithdrawn: Number(stats.total_withdrawn ?? 0),
       });
     })();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const cards = [
