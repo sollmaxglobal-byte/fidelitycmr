@@ -379,11 +379,11 @@ function DepositPage() {
             icon={<Check className="size-6 text-[#ffd45a]" />}
             eyebrow="5 · Processing"
             title={depositStatus === "pending" ? "Deposit submitted" : `Deposit ${depositStatus}`}
-            description="Your proof has been submitted for review. Keep your reference until the deposit is confirmed."
+            description="Your proof has been submitted for review. Keep your transaction ID until the deposit is confirmed."
           >
             <div className="mx-auto grid w-full max-w-xl gap-3 sm:grid-cols-2">
               <Detail label="Amount" value={`${money(amount)} FCFA`} />
-              <Detail label="Reference" value={reference} onCopy={() => copy(reference)} />
+              <Detail label="Transaction ID" value={transactionId} onCopy={() => copy(transactionId)} />
               <Detail label="Payment method" value={selectedMethod?.name ?? "—"} />
               <Detail label="Status" value={depositStatus === "pending" ? "Pending review" : depositStatus} />
             </div>
