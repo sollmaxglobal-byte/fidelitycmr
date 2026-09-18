@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { ArrowLeft, ArrowRight, Check, Clock3, Copy, FileImage, ShieldCheck, Smartphone, Upload, Wallet, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Copy, FileImage, ShieldCheck, Smartphone, Upload, Wallet, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -38,7 +38,6 @@ function DepositPage() {
   const [activeMethods, setActiveMethods] = useState<Method[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [remaining, setRemaining] = useState(900);
   const [depositStatus, setDepositStatus] = useState("pending");
 
   const selectedMethod = activeMethods.find((m) => m.id === method);
@@ -96,12 +95,6 @@ function DepositPage() {
   useEffect(() => {
     if (step === 2 && activeMethods.length === 1 && !method) setMethod(activeMethods[0].id);
   }, [step, activeMethods, method]);
-
-  useEffect(() => {
-    if (step !== 3 || remaining <= 0) return;
-    const timer = window.setInterval(() => setRemaining((value) => Math.max(0, value - 1)), 1000);
-    return () => window.clearInterval(timer);
-  }, [step, remaining]);
 
   useEffect(() => {
     if (step !== 5) return;
@@ -171,7 +164,6 @@ function DepositPage() {
     }
   }
 
-  const timer = `${String(Math.floor(remaining / 60)).padStart(2, "0")}:${String(remaining % 60).padStart(2, "0")}`;
   const progress = step === 5 ? 100 : (step / 5) * 100;
 
   if (loading) {
@@ -288,21 +280,16 @@ function DepositPage() {
             description="Send the exact amount to the account below, then continue."
           >
             {selectedMethod ? (
-              <div className="mx-auto grid w-full max-w-2xl grid-cols-2 gap-2">
+              <div className="mx-auto flex w-full max-w-xl flex-col gap-2">
                 <Detail label="Amount" value={`${money(amount)} FCFA`} />
                 <Detail label="Account number" value={selectedMethod.number} onCopy={() => copy(selectedMethod.number)} />
                 <Detail label="Account name" value={selectedMethod.accountName ?? "—"} onCopy={selectedMethod.accountName ? () => copy(selectedMethod.accountName!) : undefined} />
                 {selectedMethod.instructions && (
-                  <div className="rounded-xl border border-border bg-background p-3 text-[11px] leading-relaxed text-muted-foreground col-span-2">
+                  <div className="rounded-xl border border-border bg-background p-3 text-[11px] leading-relaxed text-muted-foreground">
                     {selectedMethod.instructions}
                   </div>
                 )}
-                <div className="flex items-center justify-center gap-2 rounded-xl border border-primary/20 bg-primary/5 p-2.5 text-[11px] col-span-2">
-                  <Clock3 className="size-4 text-primary" />
-                  Payment window: <span className="font-mono font-bold">{timer}</span>
-                </div>
-              </div>
-            ) : (
+              </div>            ) : (
               <div className="text-center text-sm text-muted-foreground">Choose a payment method first.</div>
             )}
             <FooterActions onBack={() => setStep(2)} onNext={next} nextLabel="Continue" nextDisabled={!selectedMethod} />
@@ -365,7 +352,7 @@ function DepositPage() {
             icon={<Check className="size-6 text-[#ffd45a]" />}
             eyebrow="5 · Processing"
             title={depositStatus === "pending" ? "Deposit submitted" : `Deposit ${depositStatus}`}
-            description="Your proof has been submitted for review. Keep your transaction ID until the deposit is confirmed."
+            description="Your proof has been submitted for review. You can track the deposit status below."
           >
             <div className="mx-auto grid w-full max-w-xl gap-3 sm:grid-cols-2">
               <Detail label="Amount" value={`${money(amount)} FCFA`} />
@@ -438,10 +425,10 @@ function FooterActions({
 
 function Detail({ label, value, onCopy }: { label: string; value: string; onCopy?: () => void }) {
   return (
-    <div className="flex min-w-0 items-center gap-3 rounded-xl border border-border bg-background p-4">
+    <div className="flex min-h-14 min-w-0 items-center gap-3 rounded-xl border border-border bg-background px-3 py-2.5">
       <div className="min-w-0 flex-1">
-        <p className="text-xs text-muted-foreground">{label}</p>
-        <p className="mt-1 truncate text-sm font-semibold">{value}</p>
+        <p className="text-[11px] text-muted-foreground">{label}</p>
+        <p className="mt-0.5 break-all text-sm font-semibold leading-tight">{value}</p>
       </div>
       {onCopy && (
         <Button type="button" size="icon" variant="ghost" onClick={onCopy} aria-label={`Copy ${label}`}>
