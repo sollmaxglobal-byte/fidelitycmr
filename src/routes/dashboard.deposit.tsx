@@ -18,6 +18,7 @@ type Method = {
   instructions?: string;
   accountName?: string;
   type: string;
+  logoUrl?: string;
 };
 type Settings = { deposit_min_amount?: number; deposit_max_amount?: number };
 
@@ -59,7 +60,7 @@ function DepositPage() {
           supabase.from("app_settings").select("deposit_min_amount, deposit_max_amount").eq("id", 1).maybeSingle(),
           supabase
             .from("payment_methods")
-            .select("id, type, label, account_name, account_number, instructions, active, scope")
+            .select("id, type, label, account_name, account_number, instructions, active, scope, logo_url")
             .eq("active", true)
             .in("scope", ["deposit", "both"])
             .order("created_at"),
@@ -80,6 +81,7 @@ function DepositPage() {
               instructions: item.instructions ?? undefined,
               accountName: item.account_name ?? undefined,
               type: item.type,
+              logoUrl: item.logo_url ?? undefined,
             }))
             .filter((item) => item.number),
         );
@@ -248,7 +250,7 @@ function DepositPage() {
                       method === item.id ? "border-[#ffd45a] bg-[#ffd45a]/15" : "border-border bg-[#141419] hover:border-[#ffd45a]/60"
                     }`}
                   >
-                    <MethodLogo name={item.name} type={item.type} />
+                    <MethodLogo name={item.name} type={item.type} logoUrl={item.logoUrl} />
                     <span className="min-w-0 flex-1">
                       <span className="block truncate text-sm font-bold">{item.name}</span>
                       <span className="mt-0.5 block text-[11px] text-muted-foreground">{item.type === "mobile_money" ? "Mobile Money" : item.type.replace("_", " ")}</span>
@@ -353,19 +355,12 @@ function DepositPage() {
   );
 }
 
-function MethodLogo({ name, type }: { name: string; type: string }) {
+function MethodLogo({ name, type, logoUrl }: { name: string; type: string; logoUrl?: string }) {
   const normalized = name.toLowerCase();
-  if (normalized.includes("mtn")) {
+  if (logoUrl) {
     return (
-      <span className="flex size-14 shrink-0 items-center justify-center rounded-xl bg-[#ffd45a] text-black">
-        <span className="flex size-9 items-center justify-center rounded-full border-2 border-black text-[11px] font-black">MTN</span>
-      </span>
-    );
-  }
-  if (normalized.includes("orange")) {
-    return (
-      <span className="flex size-14 shrink-0 items-center justify-center rounded-xl bg-[#ff7900] text-white">
-        <span className="text-[9px] font-black tracking-tight">ORANGE</span>
+      <span className="flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-border bg-white p-2">
+        <img src={logoUrl} alt="" className="max-h-10 max-w-10 object-contain" loading="eager" />
       </span>
     );
   }
