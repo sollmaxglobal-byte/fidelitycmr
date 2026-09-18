@@ -143,7 +143,9 @@ function DepositPage() {
 
     setSubmitting(true);
     try {
-      const path = `${user.id}/${transactionId}`;
+      const reference = transactionId || crypto.randomUUID();
+      setTransactionId(reference);
+      const path = `${user.id}/${reference}`;
       const { error: uploadError } = await supabase.storage
         .from("payment-proofs")
         .upload(path, uploadedFile, { upsert: true, contentType: uploadedFile.type });
@@ -153,7 +155,7 @@ function DepositPage() {
         user_id: user.id,
         amount: amountNumber,
         payment_method_id: method,
-        reference: transactionId,
+        reference,
         proof_url: path,
         status: "pending",
       });
@@ -286,16 +288,16 @@ function DepositPage() {
             description="Send the exact amount to the account below, then continue."
           >
             {selectedMethod ? (
-              <div className="mx-auto grid w-full max-w-2xl gap-3 sm:grid-cols-2">
+              <div className="mx-auto grid w-full max-w-2xl grid-cols-2 gap-2">
                 <Detail label="Amount" value={`${money(amount)} FCFA`} />
                 <Detail label="Account number" value={selectedMethod.number} onCopy={() => copy(selectedMethod.number)} />
                 <Detail label="Account name" value={selectedMethod.accountName ?? "—"} onCopy={selectedMethod.accountName ? () => copy(selectedMethod.accountName!) : undefined} />
                 {selectedMethod.instructions && (
-                  <div className="rounded-xl border border-border bg-background p-4 text-xs leading-relaxed text-muted-foreground sm:col-span-2">
+                  <div className="rounded-xl border border-border bg-background p-3 text-[11px] leading-relaxed text-muted-foreground col-span-2">
                     {selectedMethod.instructions}
                   </div>
                 )}
-                <div className="flex items-center justify-center gap-2 rounded-xl border border-primary/20 bg-primary/5 p-3 text-xs sm:col-span-2">
+                <div className="flex items-center justify-center gap-2 rounded-xl border border-primary/20 bg-primary/5 p-2.5 text-[11px] col-span-2">
                   <Clock3 className="size-4 text-primary" />
                   Payment window: <span className="font-mono font-bold">{timer}</span>
                 </div>
@@ -312,7 +314,7 @@ function DepositPage() {
             icon={<Upload className="size-6 text-[#ffd45a]" />}
             eyebrow="4 · Payment proof"
             title="Upload your payment screenshot"
-            description="Upload a clear screenshot showing the completed payment."
+            description="Upload a clear screenshot showing the completed payment and amount."
           >
             <div className="mx-auto w-full max-w-xl">
               <label htmlFor="proof" className="flex h-48 cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-primary/50 bg-primary/5 p-4 text-center sm:h-56">
@@ -404,7 +406,7 @@ function Screen({
         <h2 className="mt-1 text-xl font-bold sm:text-2xl">{title}</h2>
         <p className="mx-auto mt-1 max-w-xl text-xs text-muted-foreground sm:text-sm">{description}</p>
       </div>
-      <div className="flex min-h-0 flex-1 flex-col justify-center overflow-hidden py-4">{children}</div>
+      <div className="flex min-h-0 flex-1 flex-col justify-center overflow-hidden py-2">{children}</div>
     </div>
   );
 }
@@ -421,7 +423,7 @@ function FooterActions({
   nextDisabled?: boolean;
 }) {
   return (
-    <div className="mt-auto flex shrink-0 gap-2 border-t border-border pt-3">
+    <div className="mt-2 flex shrink-0 gap-2 border-t border-border pt-2">
       {onBack && (
         <Button type="button" variant="outline" onClick={onBack} className="h-11 flex-1">
           <ArrowLeft data-icon="inline-start" /> Back
