@@ -17,6 +17,7 @@ type Method = {
   color: string;
   instructions?: string;
   accountName?: string;
+  type: string;
 };
 type Settings = { deposit_min_amount?: number; deposit_max_amount?: number };
 
