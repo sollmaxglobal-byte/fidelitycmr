@@ -61,30 +61,14 @@ function AdminWithdrawals() {
   async function review(w: W, status: "approved" | "rejected" | "paid") {
     setBusy(w.id);
     try {
-      if (status === "rejected") {
-        // Atomic: marks rejected and refunds the held amount exactly once.
-        const { error } = await supabase.rpc("reject_withdrawal", { _id: w.id } as never);
-        if (error) throw error;
-      } else {
-        const { error } = await supabase
-          .from("withdrawals")
-          .update({
-            status,
-            reviewed_at: new Date().toISOString(),
-          })
-          .eq("id", w.id);
-        if (error) throw error;
-        // Funds were already held when the user submitted; just log it once.
-        if (w.status === "pending") {
-          await supabase.from("transactions").insert({
-            user_id: w.user_id,
-            type: "withdrawal",
-            amount: -Number(w.amount),
-            description: `Withdrawal ${status} (${w.method})`,
-            ref_id: w.id,
-          });
-        }
-      }
+      const { error } = await supabase.rpc("admin_review_withdrawal", {
+        _withdrawal_id: w.id,
+        _status: status,
+        _admin_note: status === "rejected"
+          ? "Request could not be processed. Funds returned to your wallet."
+          : null,
+      });
+      if (error) throw error;
 
       void sendPushToUser({
         data: {
