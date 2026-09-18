@@ -88,10 +88,16 @@ function DepositPage() {
     setSubmitting(true);
     try {
       const path = `${user.id}/${reference}`;
-      const { error: uploadError } = await supabase.storage.from("deposit-proofs").upload(path, uploadedFile, { upsert: true, contentType: uploadedFile.type });
+      const { error: uploadError } = await supabase.storage.from("payment-proofs").upload(path, uploadedFile, { upsert: true, contentType: uploadedFile.type });
       if (uploadError) throw uploadError;
-      const { data: publicFile } = supabase.storage.from("deposit-proofs").getPublicUrl(path);
-      const { error } = await supabase.from("deposits").insert({ user_id: user.id, amount: amountNumber, method: method, reference, screenshot_url: publicFile.publicUrl, status: "pending" });
+      const { error } = await supabase.from("deposits").insert({
+        user_id: user.id,
+        amount: amountNumber,
+        payment_method_id: method,
+        reference,
+        proof_url: path,
+        status: "pending",
+      });
       if (error) throw error;
       setStep(5); toast.success("Proof uploaded successfully");
     } catch (error) { console.error("[v0] Deposit submission failed", error); toast.error(error instanceof Error ? error.message : "Could not submit your deposit."); }
