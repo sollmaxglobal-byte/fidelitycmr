@@ -105,35 +105,12 @@ function AdminDeposits() {
   async function review(d: Deposit, status: "approved" | "rejected") {
     setBusy(d.id);
     try {
-      const { error } = await supabase
-        .from("deposits")
-        .update({
-          status,
-          reviewed_at: new Date().toISOString(),
-        })
-        .eq("id", d.id);
+      const { error } = await supabase.rpc("admin_review_deposit", {
+        _deposit_id: d.id,
+        _status: status,
+        _admin_note: status === "rejected" ? "Could not verify payment" : null,
+      });
       if (error) throw error;
-
-      if (status === "approved") {
-        const { data: prof } = await supabase
-          .from("profiles")
-          .select("balance")
-          .eq("id", d.user_id)
-          .single();
-        await supabase
-          .from("profiles")
-          .update({
-            balance: Number(prof?.balance ?? 0) + Number(d.amount),
-          })
-          .eq("id", d.user_id);
-        await supabase.from("transactions").insert({
-          user_id: d.user_id,
-          type: "deposit",
-          amount: Number(d.amount),
-          description: `Deposit approved (${d.payment_methods?.label ?? ""})`,
-          ref_id: d.id,
-        });
-      }
       void sendPushToUser({
         data: {
           userId: d.user_id,
