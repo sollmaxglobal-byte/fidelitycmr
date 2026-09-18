@@ -60,6 +60,9 @@ function WithdrawPage() {
   const [busy, setBusy] = useState(false);
   const [pending, setPending] = useState<z.infer<typeof schema> | null>(null);
   const [pin, setPin] = useState("");
+  const [hasPin, setHasPin] = useState<boolean | null>(null);
+  const [newPin, setNewPin] = useState("");
+  const [confirmPin, setConfirmPin] = useState("");
 
   async function refresh() {
     if (!user) return;
@@ -83,6 +86,9 @@ function WithdrawPage() {
   }
   useEffect(() => {
     refresh();
+    if (user) {
+      supabase.rpc("has_withdrawal_pin", { _user_id: user.id }).then(({ data }) => setHasPin(Boolean(data)));
+    }
   }, [user]);
 
   useEffect(() => {
@@ -125,6 +131,21 @@ function WithdrawPage() {
     } finally {
       setBusy(false);
     }
+  }
+
+  async function saveWithdrawalPin() {
+    if (!/^\d{6}$/.test(newPin)) return toast.error("PIN must be exactly 6 digits");
+    if (newPin !== confirmPin) return toast.error("PINs do not match");
+    setBusy(true);
+    try {
+      const { error } = await supabase.rpc("set_withdrawal_pin", { _pin: newPin });
+      if (error) throw error;
+      setHasPin(true);
+      setNewPin(""); setConfirmPin("");
+      toast.success("Withdrawal PIN saved securely");
+    } catch (err) {
+      toast.error((err as Error).message);
+    } finally { setBusy(false); }
   }
 
   async function confirmWithdrawal() {
@@ -172,6 +193,18 @@ function WithdrawPage() {
           </div>
         </div>
       </div>
+
+      {hasPin === false && (
+        <div className="rounded-2xl border border-primary/30 bg-primary/5 p-5">
+          <h2 className="font-display text-xl text-primary">Set withdrawal PIN</h2>
+          <p className="mt-1 text-sm text-muted-foreground">Create a private 6-digit PIN. It is stored securely as a hash and is required for withdrawals.</p>
+          <div className="mt-4 grid gap-3 md:grid-cols-2">
+            <div><Label htmlFor="new-pin">6-digit PIN</Label><Input id="new-pin" type="password" inputMode="numeric" maxLength={6} value={newPin} onChange={e => setNewPin(e.target.value.replace(/\D/g, "").slice(0,6))} /></div>
+            <div><Label htmlFor="confirm-pin">Confirm PIN</Label><Input id="confirm-pin" type="password" inputMode="numeric" maxLength={6} value={confirmPin} onChange={e => setConfirmPin(e.target.value.replace(/\D/g, "").slice(0,6))} /></div>
+          </div>
+          <Button type="button" className="mt-3" onClick={saveWithdrawalPin} disabled={busy || newPin.length !== 6 || confirmPin.length !== 6}>Save withdrawal PIN</Button>
+        </div>
+      )}
 
       <form
         onSubmit={onSubmit}
@@ -246,7 +279,7 @@ function WithdrawPage() {
         <div className="md:col-span-2">
           <Button
             type="submit"
-            disabled={busy}
+            disabled={busy || hasPin !== true}
             className="w-full bg-primary text-primary-foreground hover:opacity-90 md:w-auto"
           >
             {busy ? t("deposit.submitting") : t("withdraw.submit")}
