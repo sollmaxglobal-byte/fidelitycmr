@@ -327,9 +327,19 @@ function DepositPage() {
         {step === 4 && (
           <Screen
             eyebrow="Screen 4 · Step 4"
-            title={submitted ? "Payment submitted!" : "Upload payment proof"}
-            description={submitted ? "Your payment proof is being reviewed. We'll notify you once the deposit is credited." : "Upload your payment screenshot or receipt."}
-          >
+            title={isKorapayMethod ? "Authorize your payment" : (submitted ? "Payment submitted!" : "Upload payment proof")}
+            description={isKorapayMethod ? "Complete the Mobile Money authorization to finish your deposit." : (submitted ? "Your payment proof is being reviewed. We'll notify you once the deposit is credited." : "Upload your payment screenshot or receipt.")}
+          >            {isKorapayMethod ? (
+              <div className="mx-auto w-full max-w-md space-y-3">
+                <Detail label="Amount" value={`${money(amount)} FCFA`} />
+                <Detail label="Network" value={korapayNetwork === "orange" ? "Orange Money" : "MTN Mobile Money"} />
+                <Detail label="Status" value={depositStatus === "approved" ? "Payment confirmed" : depositStatus} />
+                <p className="rounded-xl border border-border bg-background p-3 text-center text-sm text-muted-foreground">{korapayMessage || "Authorize the payment on your phone."}</p>
+                {korapayAuthModel === "OTP" && <Input value={otp} onChange={(e) => setOtp(e.target.value)} inputMode="numeric" placeholder="Enter OTP" />}
+                {korapayAuthModel === "OTP" && <Button onClick={submitOtp} disabled={submitting || !otp} className="h-11">Authorize payment</Button>}
+                {korapayAuthModel !== "OTP" && depositStatus !== "approved" && <Button onClick={async () => { setSubmitting(true); try { const r = await verifyKorapayPayment({data:{depositId:reference}}); setDepositStatus(r.status); setKorapayMessage(r.reason || "Checking payment status…"); } catch(e) { toast.error(e instanceof Error ? e.message : "Could not check payment."); } finally { setSubmitting(false); } }} disabled={submitting} className="h-11">Check payment status</Button>}
+              </div>
+            ) : (
             {!submitted ? (
               <div className="mx-auto w-full max-w-md">
                 <label htmlFor="proof" className="flex h-48 cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-[#c9a94b] bg-[#ffd45a]/5 p-4 text-center">
@@ -378,12 +388,15 @@ function DepositPage() {
                 </div>
               </div>
             )}
+            )}
+            {isKorapayMethod ? <FooterActions onBack={() => setStep(3)} onNext={() => navigate({ to: "/dashboard" })} nextLabel="Back to dashboard" /> : (
             <FooterActions
               onBack={!submitted ? () => setStep(3) : undefined}
               onNext={submitted ? () => navigate({ to: "/dashboard" }) : submitProof}
               nextLabel={submitted ? "Back to dashboard" : submitting ? "Submitting…" : "Submit deposit"}
               nextDisabled={!submitted && (!uploadedFile || submitting)}
             />
+            )}
           </Screen>
 
         )}
