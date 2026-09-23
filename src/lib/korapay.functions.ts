@@ -218,6 +218,10 @@ export const initiateKorapayMobileMoney = createServerFn({ method: "POST" })
     }
 
     const phone = normalizeCameroonPhone(data.phone);
+    if (!config.webhookUrl) {
+      // The webhook URL is optional for initiation; the server can still verify by reference.
+    }
+
     const { data: method, error: methodError } = await supabaseAdmin
       .from("payment_methods")
       .select("id,type,label,active,scope")
