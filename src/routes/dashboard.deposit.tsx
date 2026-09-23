@@ -35,6 +35,7 @@ function DepositPage() {
   const [amount, setAmount] = useState("");
   const [method, setMethod] = useState<string | null>(null);
   const [reference, setReference] = useState("");
+  const [depositId, setDepositId] = useState("");
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [settings, setSettings] = useState<Settings>(fallbackSettings);
@@ -126,6 +127,7 @@ function DepositPage() {
     try {
       const result = await initiateKorapayMobileMoney({ data: { amount: amountNumber, methodId: selectedMethod.id, phone, network: korapayNetwork } });
       setReference(result.merchantReference);
+      setDepositId(result.depositId);
       setTransactionReference(result.transactionReference || "");
       setKorapayAuthModel(result.authModel || null);
       setKorapayMessage(result.message || "Authorize the payment on your phone.");
@@ -140,11 +142,11 @@ function DepositPage() {
     if (!transactionReference || !reference) return;
     setSubmitting(true);
     try {
-      const result = await authorizeKorapayMobileMoney({ data: { depositId: reference, transactionReference, otp } });
+      const result = await authorizeKorapayMobileMoney({ data: { depositId, transactionReference, otp } });
       setKorapayMessage(result.message || "Payment authorization received.");
       setDepositStatus(result.status || "processing");
       if (result.status === "success") {
-        const verified = await verifyKorapayPayment({ data: { depositId: reference } });
+        const verified = await verifyKorapayPayment({ data: { depositId } });
         setDepositStatus(verified.status);
       }
     } catch (error) { toast.error(error instanceof Error ? error.message : "Could not authorize payment."); }
