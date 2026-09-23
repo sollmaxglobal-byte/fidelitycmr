@@ -20,17 +20,20 @@ type KoraData = {
   mobile_money?: { number?: string };
 };
 
-function secretKey() {
-  const key = process.env.KORAPAY_SECRET_KEY;
-  if (!key) throw new Error("Korapay is not configured. Add KORAPAY_SECRET_KEY to the server environment.");
-  return key;
+async function korapayConfig() {
+  const { data, error } = await supabaseAdmin
+    .from("app_settings")
+    .select("korapay_enabled,korapay_secret_key,korapay_webhook_url")
+    .eq("id", 1)
+    .maybeSingle();
+  if (error) throw error;
+  if (!data?.korapay_enabled) throw new Error("Korapay deposits are currently disabled by the administrator.");
+  const key = data.korapay_secret_key?.trim() || process.env.KORAPAY_SECRET_KEY?.trim();
+  if (!key) throw new Error("Korapay is not configured. Add the secret key in Admin → Site settings.");
+  return { key, webhookUrl: data.korapay_webhook_url?.trim() || process.env.KORAPAY_WEBHOOK_URL?.trim() || "" };
 }
 
-function webhookUrl() {
-  const url = process.env.KORAPAY_WEBHOOK_URL;
-  if (!url) throw new Error("Korapay webhook is not configured. Add KORAPAY_WEBHOOK_URL to the server environment.");
-  return url;
-}
+
 
 function normalizeCameroonPhone(value: string) {
   const digits = value.replace(/\D/g, "");
@@ -53,11 +56,12 @@ function readKoraMessage(body: unknown) {
 }
 
 async function koraRequest(path: string, init: RequestInit) {
+  const config = await korapayConfig();
   const res = await fetch(`${KORA_BASE_URL}${path}`, {
     ...init,
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${secretKey()}`,
+      Authorization: `Bearer ${config.key}`,
       ...(init.headers ?? {}),
     },
   });
@@ -208,6 +212,7 @@ export const initiateKorapayMobileMoney = createServerFn({ method: "POST" })
   })
   .handler(async ({ data, context }) => {
     const amount = Math.trunc(data.amount);
+    const config = await korapayConfig();
     if (amount > KORA_MAX_XAF) {
       throw new Error("Korapay Mobile Money supports up to 500,000 XAF per transaction.");
     }
@@ -258,7 +263,7 @@ export const initiateKorapayMobileMoney = createServerFn({ method: "POST" })
       reference: merchantReference,
       amount,
       currency: "XAF",
-      notification_url: webhookUrl(),
+      notification_url: config.webhookUrl || undefined,
       customer: {
         name: profile?.full_name || "Fidelity customer",
         email,
