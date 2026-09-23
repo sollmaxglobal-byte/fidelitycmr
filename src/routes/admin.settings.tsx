@@ -59,6 +59,9 @@ type Settings = {
   orange_number: string | null;
   mtn_enabled: boolean | null;
   orange_enabled: boolean | null;
+  korapay_enabled: boolean | null;
+  korapay_secret_key: string | null;
+  korapay_webhook_url: string | null;
 };
 
 function CopyField({ label, value }: { label: string; value: string }) {
@@ -146,6 +149,9 @@ function AdminSettings() {
         orange_number: s.orange_number,
         mtn_enabled: !!s.mtn_enabled,
         orange_enabled: !!s.orange_enabled,
+        korapay_enabled: !!s.korapay_enabled,
+        korapay_secret_key: s.korapay_secret_key,
+        korapay_webhook_url: s.korapay_webhook_url,
       };
       let { error } = await supabase.from("app_settings").update(settingsPayload).eq("id", 1);
       if (error && /schema cache|column .* does not exist/i.test(error.message)) {
@@ -195,6 +201,32 @@ function AdminSettings() {
   </div>
   </section>
   
+  <section className="space-y-4 rounded-2xl border border-border bg-card p-5">
+    <div>
+      <h2 className="font-display text-lg text-primary">Korapay Mobile Money</h2>
+      <p className="text-sm text-muted-foreground">Configure Korapay deposits without changing your existing payment methods.</p>
+    </div>
+    <div className="flex items-center justify-between rounded-lg bg-secondary p-3">
+      <div>
+        <div className="text-sm font-medium">Enable Korapay deposits</div>
+        <p className="text-xs text-muted-foreground">This switch only controls Korapay. Your existing methods are unchanged.</p>
+      </div>
+      <Switch checked={!!s.korapay_enabled} onCheckedChange={(v) => set("korapay_enabled", v)} />
+    </div>
+    <div className="grid gap-3 sm:grid-cols-2">
+      <div className="sm:col-span-2">
+        <Label>Korapay Secret Key</Label>
+        <Input type={showSecret ? "text" : "password"} value={s.korapay_secret_key ?? ""} onChange={(e) => set("korapay_secret_key", e.target.value)} placeholder="Enter your Korapay secret key" autoComplete="off" />
+      </div>
+      <div className="sm:col-span-2">
+        <Label>Webhook URL</Label>
+        <Input value={s.korapay_webhook_url ?? `${baseUrl}/api/korapay/webhook`} onChange={(e) => set("korapay_webhook_url", e.target.value)} placeholder={`${baseUrl}/api/korapay/webhook`} />
+        <p className="mt-1 text-xs text-muted-foreground">Use the deployed URL ending in /api/korapay/webhook.</p>
+      </div>
+    </div>
+    <Button type="button" variant="outline" onClick={() => setShowSecret(!showSecret)}>{showSecret ? "Hide secret" : "Show secret"}</Button>
+  </section>
+
   <section className="space-y-3 rounded-2xl border border-border bg-card p-5">
   <h2 className="font-display text-lg text-primary">Branding</h2>
         <div className="grid gap-3 sm:grid-cols-2">
