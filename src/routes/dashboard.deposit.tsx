@@ -339,10 +339,9 @@ function DepositPage() {
                 <p className="rounded-xl border border-border bg-background p-3 text-center text-sm text-muted-foreground">{korapayMessage || "Authorize the payment on your phone."}</p>
                 {korapayAuthModel === "OTP" && <Input value={otp} onChange={(e) => setOtp(e.target.value)} inputMode="numeric" placeholder="Enter OTP" />}
                 {korapayAuthModel === "OTP" && <Button onClick={submitOtp} disabled={submitting || !otp} className="h-11">Authorize payment</Button>}
-                {korapayAuthModel !== "OTP" && depositStatus !== "approved" && <Button onClick={async () => { setSubmitting(true); try { const r = await verifyKorapayPayment({data:{depositId:reference}}); setDepositStatus(r.status); setKorapayMessage(r.reason || "Checking payment status…"); } catch(e) { toast.error(e instanceof Error ? e.message : "Could not check payment."); } finally { setSubmitting(false); } }} disabled={submitting} className="h-11">Check payment status</Button>}
+                {korapayAuthModel !== "OTP" && depositStatus !== "approved" && <Button onClick={async () => { setSubmitting(true); try { const r = await verifyKorapayPayment({data:{depositId}}); setDepositStatus(r.status); setKorapayMessage(r.reason || "Checking payment status…"); } catch(e) { toast.error(e instanceof Error ? e.message : "Could not check payment."); } finally { setSubmitting(false); } }} disabled={submitting} className="h-11">Check payment status</Button>}
               </div>
-            ) : (
-            {!submitted ? (
+            ) : (!submitted ? (
               <div className="mx-auto w-full max-w-md">
                 <label htmlFor="proof" className="flex h-48 cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-[#c9a94b] bg-[#ffd45a]/5 p-4 text-center">
                   <Upload className="size-10 text-[#ffd45a]" />
@@ -389,7 +388,7 @@ function DepositPage() {
                   <Detail label="Status" value={depositStatus === "pending" ? "Verifying" : depositStatus} />
                 </div>
               </div>
-            )}
+            )
             )}
             {isKorapayMethod ? <FooterActions onBack={() => setStep(3)} onNext={() => navigate({ to: "/dashboard" })} nextLabel="Back to dashboard" /> : (
             <FooterActions
