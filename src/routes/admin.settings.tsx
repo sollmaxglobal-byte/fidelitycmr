@@ -93,11 +93,12 @@ function AdminSettings() {
   const [showSecret, setShowSecret] = useState(false);
 
   async function load() {
-    // Full row (including SMTP credentials) is admin-only via SECURITY DEFINER RPC.
+    // Full app settings are admin-only via RPC.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data } = await (supabase as any).rpc("get_app_settings_admin");
     const row = Array.isArray(data) ? data[0] : data;
-    setS((row as Settings) ?? ({ id: 1 } as Settings));
+    const { data: kora } = await (supabase as any).rpc("get_korapay_config_admin");
+    setS({ ...((row as Settings) ?? ({ id: 1 } as Settings)), korapay_enabled: !!kora?.enabled, korapay_secret_key: kora?.secret_key ?? null, korapay_webhook_url: kora?.webhook_url ?? null });
   }
   useEffect(() => {
     load();
@@ -149,10 +150,14 @@ function AdminSettings() {
         orange_number: s.orange_number,
         mtn_enabled: !!s.mtn_enabled,
         orange_enabled: !!s.orange_enabled,
-        korapay_enabled: !!s.korapay_enabled,
-        korapay_secret_key: s.korapay_secret_key,
-        korapay_webhook_url: s.korapay_webhook_url,
       };
+      const { error: korapayError } = await (supabase as any).rpc("save_korapay_config_admin", {
+        p_enabled: !!s.korapay_enabled,
+        p_secret_key: s.korapay_secret_key,
+        p_webhook_url: s.korapay_webhook_url,
+      });
+      if (korapayError) throw korapayError;
+
       let { error } = await supabase.from("app_settings").update(settingsPayload).eq("id", 1);
       if (error && /schema cache|column .* does not exist/i.test(error.message)) {
         const { deposit_min_amount: _min, deposit_max_amount: _max, ...legacyPayload } = settingsPayload;
