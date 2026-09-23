@@ -325,18 +325,67 @@ function DepositPage() {
         )}
 
         {step === 4 && (
-          <Screen eyebrow="Screen 4 · Step 4" title="Payment authorization" description={korapayMessage || "Authorize the payment on your phone."}>
-            {isKorapayMethod ? (
-              <div className="mx-auto w-full max-w-md space-y-3">
-                <Detail label="Amount" value={`${money(amount)} FCFA`} />
-                <Detail label="Status" value={depositStatus} />
-                {korapayAuthModel === "OTP" && <Input value={otp} onChange={(e) => setOtp(e.target.value)} inputMode="numeric" placeholder="Enter OTP" />}
-                {korapayAuthModel === "OTP" && <Button onClick={submitOtp} disabled={submitting || !otp}>Authorize payment</Button>}
-                {korapayAuthModel !== "OTP" && depositStatus !== "approved" && <Button onClick={async () => { setSubmitting(true); try { const r = await verifyKorapayPayment({data:{depositId:reference}}); setDepositStatus(r.status); setKorapayMessage(r.reason || "Checking payment status…"); } catch(e) { toast.error(e instanceof Error ? e.message : "Could not check payment."); } finally { setSubmitting(false); } }} disabled={submitting}>Check payment status</Button>}
-                {depositStatus === "approved" && <Button onClick={() => navigate({to:"/dashboard"})}>Back to dashboard</Button>}
+          <Screen
+            eyebrow="Screen 4 · Step 4"
+            title={submitted ? "Payment submitted!" : "Upload payment proof"}
+            description={submitted ? "Your payment proof is being reviewed. We'll notify you once the deposit is credited." : "Upload your payment screenshot or receipt."}
+          >
+            {!submitted ? (
+              <div className="mx-auto w-full max-w-md">
+                <label htmlFor="proof" className="flex h-48 cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-[#c9a94b] bg-[#ffd45a]/5 p-4 text-center">
+                  <Upload className="size-10 text-[#ffd45a]" />
+                  <span className="text-lg font-bold text-[#ffd45a]">Tap to upload</span>
+                  <span className="text-xs text-muted-foreground">PNG, JPG or WEBP · maximum 5MB</span>
+                  <Input
+                    id="proof"
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp"
+                    className="sr-only"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file && file.size > 5 * 1024 * 1024) {
+                        toast.error("File must be smaller than 5MB.");
+                        return;
+                      }
+                      setUploadedFile(file ?? null);
+                    }}
+                  />
+                </label>
+                {uploadedFile && (
+                  <div className="mt-3 flex items-center gap-2 rounded-lg border border-border p-2">
+                    <FileImage className="size-4 text-primary" />
+                    <span className="min-w-0 flex-1 truncate text-xs">{uploadedFile.name}</span>
+                    <Button type="button" size="icon" variant="ghost" className="size-7" onClick={() => setUploadedFile(null)} aria-label="Remove proof">
+                      <X className="size-4" />
+                    </Button>
+                  </div>
+                )}
               </div>
-            ) : null
+            ) : (
+              <div className="mx-auto w-full max-w-md space-y-3">
+                <div className="flex items-center gap-3 rounded-xl border border-primary/30 bg-primary/5 p-3">
+                  <Check className="size-6 shrink-0 text-primary" />
+                  <div>
+                    <p className="font-bold">Payment submitted!</p>
+                    <p className="text-xs text-muted-foreground">{uploadedFile?.name}</p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <Detail label="Amount" value={`${money(amount)} FCFA`} />
+                  <Detail label="Payment method" value={selectedMethod?.name ?? "—"} />
+                  <Detail label="Account name" value={selectedMethod?.accountName ?? "—"} />
+                  <Detail label="Status" value={depositStatus === "pending" ? "Verifying" : depositStatus} />
+                </div>
+              </div>
+            )}
+            <FooterActions
+              onBack={!submitted ? () => setStep(3) : undefined}
+              onNext={submitted ? () => navigate({ to: "/dashboard" }) : submitProof}
+              nextLabel={submitted ? "Back to dashboard" : submitting ? "Submitting…" : "Submit deposit"}
+              nextDisabled={!submitted && (!uploadedFile || submitting)}
+            />
           </Screen>
+
         )}
       </section>
     </main>
