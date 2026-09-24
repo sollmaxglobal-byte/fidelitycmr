@@ -122,10 +122,11 @@ function DepositPage() {
 
   async function startKorapay() {
     if (!user || !selectedMethod || !korapayNetwork) return;
-    if (!phone.trim()) { toast.error("Enter your Cameroon mobile number."); return; }
+    const normalizedPhone = phone.replace(/\D/g, "");
+    if (!normalizedPhone) { toast.error("Enter your Cameroon mobile number."); return; }
     setSubmitting(true);
     try {
-      const result = await initiateKorapayMobileMoney({ data: { amount: amountNumber, methodId: selectedMethod.id, phone, network: korapayNetwork } });
+      const result = await initiateKorapayMobileMoney({ data: { amount: amountNumber, methodId: selectedMethod.id, phone: normalizedPhone, network: korapayNetwork } });
       setReference(result.merchantReference);
       setDepositId(result.depositId);
       setTransactionReference(result.transactionReference || "");
@@ -312,7 +313,11 @@ function DepositPage() {
               <div className="mx-auto flex w-full max-w-md flex-col gap-3">
                 <Detail label="Amount" value={`${money(amount)} FCFA`} />
                 <Detail label="Network" value={korapayNetwork === "orange" ? "Orange Money" : "MTN Mobile Money"} />
-                <Input value={phone} onChange={(e) => setPhone(e.target.value)} inputMode="tel" placeholder="6XXXXXXXX" />
+                <div className="rounded-xl border border-[#c9a94b]/70 bg-[#111116] px-3 py-3">
+                  <p className="text-[11px] font-semibold text-[#ffd45a]">Mobile Money number</p>
+                  <p className="mt-1 break-all text-base font-bold">{selectedMethod.number || "—"}</p>
+                </div>
+                <p className="text-center text-xs text-muted-foreground">Use the Mobile Money number configured by the administrator. Korapay will send the authorization prompt to that number.</p>
               </div>
             ) : selectedMethod ? (
               <div className="mx-auto flex w-full max-w-md flex-col gap-2">
