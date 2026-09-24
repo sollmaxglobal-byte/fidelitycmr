@@ -324,7 +324,7 @@ function DepositPage() {
         )}
 
         {step === 3 && (
-          <Screen eyebrow="Screen 3 · Step 3" title={isKorapayMethod ? "Confirm Mobile Money payment" : "Complete your payment"} description={isKorapayMethod ? "A payment authorization prompt will be sent to the configured Mobile Money number below." : "Send the exact amount to the active account below."}>
+          <Screen eyebrow="Screen 3 · Step 3" title={isKorapayMethod ? "Confirm Mobile Money payment" : "Complete your payment"} description={isKorapayMethod ? "A payment authorization prompt will be sent to your Mobile Money number below." : "Send the exact amount to the active account below."}>
             {selectedMethod && isKorapayMethod ? (
               <div className="mx-auto flex w-full max-w-md flex-col gap-3">
                 <Detail label="Amount" value={money(amount) + " FCFA"} />
