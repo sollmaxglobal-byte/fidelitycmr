@@ -42,22 +42,33 @@ async function korapayConfig() {
 
 function normalizeCameroonPhone(value: string) {
   const digits = value.replace(/\D/g, "");
-  if (digits.startsWith("237")) {
-    if (digits.length !== 12) throw new Error("Enter a valid Cameroon mobile number.");
-    return digits;
+  const normalized = digits.startsWith("00237") ? digits.slice(2) : digits;
+  if (normalized.startsWith("237")) {
+    if (/^2376\d{8}$/.test(normalized)) return normalized;
+    throw new Error("Enter a valid Cameroon mobile number, for example 6XXXXXXXX.");
   }
-  if (digits.length === 9 && digits.startsWith("6")) return `237${digits}`;
+  if (/^0?6\d{8}$/.test(normalized)) {
+    const local = normalized.startsWith("0") ? normalized.slice(1) : normalized;
+    return `237${local}`;
+  }
   throw new Error("Enter a valid Cameroon mobile number, for example 6XXXXXXXX.");
 }
 
 function readKoraMessage(body: unknown) {
   if (!body || typeof body !== "object") return "Korapay request failed";
-  const value = body as { message?: unknown; data?: { message?: unknown } };
-  return typeof value.message === "string"
-    ? value.message
-    : typeof value.data?.message === "string"
-      ? value.data.message
-      : "Korapay request failed";
+  const value = body as {
+    message?: unknown;
+    data?: { message?: unknown; [key: string]: unknown } | null;
+  };
+  if (typeof value.message === "string" && value.message.trim()) return value.message;
+  if (typeof value.data?.message === "string" && value.data.message.trim()) return value.data.message;
+  const details = value.data && typeof value.data === "object"
+    ? Object.entries(value.data)
+        .filter(([, item]) => item !== null && item !== undefined && item !== "")
+        .map(([key, item]) => `${key}: ${typeof item === "string" ? item : JSON.stringify(item)}`)
+        .join("; ")
+    : "";
+  return details ? `Korapay rejected the request: ${details}` : "Korapay request failed";
 }
 
 async function koraRequest(path: string, init: RequestInit) {
