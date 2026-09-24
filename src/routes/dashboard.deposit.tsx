@@ -49,6 +49,7 @@ function DepositPage() {
   const [transactionReference, setTransactionReference] = useState("");
   const [korapayAuthModel, setKorapayAuthModel] = useState<string | null>(null);
   const [korapayMessage, setKorapayMessage] = useState("");
+  const [korapayPhone, setKorapayPhone] = useState("");
 
   const selectedMethod = activeMethods.find((m) => m.id === method);
   const isKorapayMethod = !!selectedMethod && selectedMethod.provider === "korapay";
@@ -125,7 +126,7 @@ function DepositPage() {
     if (!user || !selectedMethod || !korapayNetwork) return;
     setSubmitting(true);
     try {
-      const result = await initiateKorapayMobileMoney({ data: { amount: amountNumber, methodId: selectedMethod.id, phone: selectedMethod.number.replace(/\D/g, ""), network: korapayNetwork } });
+      const result = await initiateKorapayMobileMoney({ data: { amount: amountNumber, methodId: selectedMethod.id, phone: korapayPhone, network: korapayNetwork } });
       setReference(result.merchantReference);
       setDepositId(result.depositId);
       setTransactionReference(result.transactionReference || "");
@@ -169,6 +170,15 @@ function DepositPage() {
     } else if (step === 3) {
       if (!selectedMethod) {
         toast.error("Choose an active payment method.");
+        return;
+      }
+      if (isKorapayMethod) {
+        const digits = korapayPhone.replace(/\D/g, "");
+        if (!/^6\d{8}$/.test(digits) && !/^2376\d{8}$/.test(digits)) {
+          toast.error("Enter a valid Cameroon Mobile Money number, e.g. 6XXXXXXXX.");
+          return;
+        }
+        await startKorapay();
         return;
       }
       setStep(4);
@@ -310,13 +320,23 @@ function DepositPage() {
           <Screen eyebrow="Screen 3 · Step 3" title={isKorapayMethod ? "Confirm Mobile Money payment" : "Complete your payment"} description={isKorapayMethod ? "Korapay will send the authorization prompt to the configured Mobile Money number below." : "Send the exact amount to the active account below."}>
             {selectedMethod && isKorapayMethod ? (
               <div className="mx-auto flex w-full max-w-md flex-col gap-3">
-                <Detail label="Amount" value={`${money(amount)} FCFA`} />
+                <Detail label="Amount" value={money(amount) + " FCFA"} />
                 <Detail label="Network" value={korapayNetwork === "orange" ? "Orange Money" : "MTN Mobile Money"} />
                 <div className="rounded-xl border border-[#c9a94b]/70 bg-[#111116] px-3 py-3">
-                  <p className="text-[11px] font-semibold text-[#ffd45a]">Mobile Money number</p>
-                  <p className="mt-1 break-all text-base font-bold">{selectedMethod.number || "—"}</p>
+                  <label htmlFor="korapay-phone" className="text-[11px] font-semibold text-[#ffd45a]">Your Mobile Money number</label>
+                  <Input
+                    id="korapay-phone"
+                    value={korapayPhone}
+                    onChange={(e) => setKorapayPhone(e.target.value.replace(/[^0-9+ ]/g, ""))}
+                    placeholder="6XXXXXXXX"
+                    inputMode="tel"
+                    autoComplete="tel"
+                    className="mt-2 h-12 border-[#c9a94b]/60 bg-[#111116] text-base font-bold"
+                  />
+                  <p className="mt-2 text-[11px] text-muted-foreground">
+                    Enter the {korapayNetwork === "orange" ? "Orange Money" : "MTN Mobile Money"} number you will use to pay. Korapay will send the authorization prompt to this number.
+                  </p>
                 </div>
-                <p className="text-center text-xs text-muted-foreground">Use the Mobile Money number configured by the administrator. Korapay will send the authorization prompt to that number.</p>
               </div>
             ) : selectedMethod ? (
               <div className="mx-auto flex w-full max-w-md flex-col gap-2">
@@ -326,7 +346,7 @@ function DepositPage() {
                 {selectedMethod.instructions && <div className="rounded-xl border border-border bg-background p-3 text-[11px] leading-relaxed text-muted-foreground">{selectedMethod.instructions}</div>}
               </div>
             ) : <div className="text-center text-sm text-muted-foreground">Choose a payment method first.</div>}
-            <FooterActions onBack={() => setStep(2)} onNext={isKorapayMethod ? startKorapay : next} nextLabel={isKorapayMethod ? (submitting ? "Starting…" : "Pay now") : "I have paid"} nextDisabled={!selectedMethod || submitting} />
+            <FooterActions onBack={() => setStep(2)} onNext={isKorapayMethod ? startKorapay : next} nextLabel={isKorapayMethod ? (submitting ? "Starting…" : "Pay now") : "I have paid"} nextDisabled={!selectedMethod || submitting || (isKorapayMethod && !/^(?:6\d{8}|2376\d{8})$/.test(korapayPhone.replace(/\D/g, "")))} />
           </Screen>
         )}
 
