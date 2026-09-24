@@ -23,14 +23,19 @@ type KoraData = {
 async function korapayConfig() {
   const { data, error } = await supabaseAdmin
     .from("korapay_config")
-    .select("enabled,secret_key,webhook_url")
+    .select("enabled,mode,test_secret_key,live_secret_key,secret_key,webhook_url")
     .eq("id", 1)
     .maybeSingle();
   if (error) throw error;
   if (!data?.enabled) throw new Error("Korapay deposits are currently disabled by the administrator.");
-  const key = data.secret_key?.trim() || process.env.KORAPAY_SECRET_KEY?.trim();
+  const mode = data.mode === "live" ? "live" : "test";
+  const key =
+    (mode === "live" ? data.live_secret_key : data.test_secret_key)?.trim() ||
+    data.secret_key?.trim() ||
+    (mode === "live" ? process.env.KORAPAY_LIVE_SECRET_KEY : process.env.KORAPAY_TEST_SECRET_KEY)?.trim() ||
+    process.env.KORAPAY_SECRET_KEY?.trim();
   if (!key) throw new Error("Korapay is not configured. Add the secret key in Admin → Site settings.");
-  return { key, webhookUrl: data.webhook_url?.trim() || process.env.KORAPAY_WEBHOOK_URL?.trim() || "" };
+  return { key, mode, webhookUrl: data.webhook_url?.trim() || process.env.KORAPAY_WEBHOOK_URL?.trim() || "" };
 }
 
 
