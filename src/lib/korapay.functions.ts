@@ -290,8 +290,10 @@ export const initiateKorapayMobileMoney = createServerFn({ method: "POST" })
       },
       merchant_bears_cost: true,
       description: `Fidelity wallet deposit - ${data.network === "mtn" ? "MTN" : "Orange"} Mobile Money`,
-      network: data.network === "mtn" ? "Mtn" : "Orange",
-      mobile_money: { number: phone },
+      mobile_money: {
+        number: phone,
+        network: data.network === "mtn" ? "Mtn" : "Orange",
+      },
     };
 
     let body: unknown;
