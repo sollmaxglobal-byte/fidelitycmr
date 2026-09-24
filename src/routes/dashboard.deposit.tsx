@@ -20,6 +20,7 @@ type Method = {
   accountName?: string;
   type: string;
   logoUrl?: string;
+  provider?: string | null;
 };
 type Settings = { deposit_min_amount?: number; deposit_max_amount?: number };
 
@@ -50,7 +51,7 @@ function DepositPage() {
   const [korapayMessage, setKorapayMessage] = useState("");
 
   const selectedMethod = activeMethods.find((m) => m.id === method);
-  const isKorapayMethod = !!selectedMethod && selectedMethod.type === "mobile_money";
+  const isKorapayMethod = !!selectedMethod && selectedMethod.provider === "korapay";
   const korapayNetwork = selectedMethod?.name.toLowerCase().includes("orange") ? "orange" : selectedMethod?.name.toLowerCase().includes("mtn") ? "mtn" : null;
   const amountNumber = Number(amount);
   const minAmount = Number(settings.deposit_min_amount ?? fallbackSettings.deposit_min_amount);
@@ -68,7 +69,7 @@ function DepositPage() {
           supabase.from("app_settings").select("deposit_min_amount, deposit_max_amount").eq("id", 1).maybeSingle(),
           supabase
             .from("payment_methods")
-            .select("id, type, label, account_name, account_number, instructions, active, scope, logo_url")
+            .select("id, type, label, account_name, account_number, instructions, active, scope, logo_url, provider")
             .eq("active", true)
             .in("scope", ["deposit", "both"])
             .order("created_at"),
@@ -90,6 +91,7 @@ function DepositPage() {
               accountName: item.account_name ?? undefined,
               type: item.type,
               logoUrl: item.logo_url ?? undefined,
+              provider: item.provider ?? "manual",
             }))
             
         );
