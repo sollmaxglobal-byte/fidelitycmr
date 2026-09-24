@@ -59,6 +59,9 @@ type Settings = {
   orange_number: string | null;
   mtn_enabled: boolean | null;
   orange_enabled: boolean | null;
+  korapay_enabled: boolean | null;
+  korapay_secret_key: string | null;
+  korapay_webhook_url: string | null;
 };
 
 function CopyField({ label, value }: { label: string; value: string }) {
@@ -90,11 +93,12 @@ function AdminSettings() {
   const [showSecret, setShowSecret] = useState(false);
 
   async function load() {
-    // Full row (including SMTP credentials) is admin-only via SECURITY DEFINER RPC.
+    // Full app settings are admin-only via RPC.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data } = await (supabase as any).rpc("get_app_settings_admin");
     const row = Array.isArray(data) ? data[0] : data;
-    setS((row as Settings) ?? ({ id: 1 } as Settings));
+    const { data: kora } = await (supabase as any).rpc("get_korapay_config_admin");
+    setS({ ...((row as Settings) ?? ({ id: 1 } as Settings)), korapay_enabled: !!kora?.enabled, korapay_secret_key: kora?.secret_key ?? null, korapay_webhook_url: kora?.webhook_url ?? null });
   }
   useEffect(() => {
     load();
@@ -147,6 +151,13 @@ function AdminSettings() {
         mtn_enabled: !!s.mtn_enabled,
         orange_enabled: !!s.orange_enabled,
       };
+      const { error: korapayError } = await (supabase as any).rpc("save_korapay_config_admin", {
+        p_enabled: !!s.korapay_enabled,
+        p_secret_key: s.korapay_secret_key,
+        p_webhook_url: s.korapay_webhook_url,
+      });
+      if (korapayError) throw korapayError;
+
       let { error } = await supabase.from("app_settings").update(settingsPayload).eq("id", 1);
       if (error && /schema cache|column .* does not exist/i.test(error.message)) {
         const { deposit_min_amount: _min, deposit_max_amount: _max, ...legacyPayload } = settingsPayload;
@@ -195,6 +206,32 @@ function AdminSettings() {
   </div>
   </section>
   
+  <section className="space-y-4 rounded-2xl border border-border bg-card p-5">
+    <div>
+      <h2 className="font-display text-lg text-primary">Korapay Mobile Money</h2>
+      <p className="text-sm text-muted-foreground">Configure Korapay deposits without changing your existing payment methods.</p>
+    </div>
+    <div className="flex items-center justify-between rounded-lg bg-secondary p-3">
+      <div>
+        <div className="text-sm font-medium">Enable Korapay deposits</div>
+        <p className="text-xs text-muted-foreground">This switch only controls Korapay. Your existing methods are unchanged.</p>
+      </div>
+      <Switch checked={!!s.korapay_enabled} onCheckedChange={(v) => set("korapay_enabled", v)} />
+    </div>
+    <div className="grid gap-3 sm:grid-cols-2">
+      <div className="sm:col-span-2">
+        <Label>Korapay Secret Key</Label>
+        <Input type={showSecret ? "text" : "password"} value={s.korapay_secret_key ?? ""} onChange={(e) => set("korapay_secret_key", e.target.value)} placeholder="Enter your Korapay secret key" autoComplete="off" />
+      </div>
+      <div className="sm:col-span-2">
+        <Label>Webhook URL</Label>
+        <Input value={s.korapay_webhook_url ?? `${baseUrl}/api/korapay/webhook`} onChange={(e) => set("korapay_webhook_url", e.target.value)} placeholder={`${baseUrl}/api/korapay/webhook`} />
+        <p className="mt-1 text-xs text-muted-foreground">Use the deployed URL ending in /api/korapay/webhook.</p>
+      </div>
+    </div>
+    <Button type="button" variant="outline" onClick={() => setShowSecret(!showSecret)}>{showSecret ? "Hide secret" : "Show secret"}</Button>
+  </section>
+
   <section className="space-y-3 rounded-2xl border border-border bg-card p-5">
   <h2 className="font-display text-lg text-primary">Branding</h2>
         <div className="grid gap-3 sm:grid-cols-2">

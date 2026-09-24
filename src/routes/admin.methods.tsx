@@ -24,6 +24,7 @@ type Method = {
   instructions: string | null;
   active: boolean;
   scope: Scope;
+  provider?: string | null;
 };
 
 const SCOPES: { value: Scope; label: string }[] = [
@@ -64,6 +65,7 @@ function AdminMethods() {
       instructions: String(fd.get("instructions") || ""),
       scope: String(fd.get("scope") || "both"),
       active: true,
+      provider: "manual",
     });
     if (error) return toast.error(error.message);
     toast.success("Method added");
@@ -175,6 +177,16 @@ function AdminMethods() {
         ))}
       </div>
 
+
+      <div className="rounded-2xl border border-border bg-card p-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <div className="font-display text-lg text-primary">Korapay Mobile Money</div>
+            <p className="text-xs text-muted-foreground">MTN and Orange deposits are configured separately in Site settings.</p>
+          </div>
+          <Button variant="outline" onClick={() => window.location.assign("/admin/settings")}>Configure Korapay</Button>
+        </div>
+      </div>
       <div className="space-y-3">
         {visible.map((m) => (
           <div key={m.id} className="rounded-2xl border border-border bg-card p-4">

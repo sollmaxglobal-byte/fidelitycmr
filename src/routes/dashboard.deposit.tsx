@@ -5,6 +5,7 @@ import { ArrowLeft, ArrowRight, Check, Copy, FileImage, ShieldCheck, Smartphone,
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
+import { initiateKorapayMobileMoney, authorizeKorapayMobileMoney, verifyKorapayPayment } from "@/lib/korapay.functions";
 import { Input } from "@/components/ui/input";
 
 export const Route = createFileRoute("/dashboard/deposit")({ component: DepositPage });
@@ -34,6 +35,7 @@ function DepositPage() {
   const [amount, setAmount] = useState("");
   const [method, setMethod] = useState<string | null>(null);
   const [reference, setReference] = useState("");
+  const [depositId, setDepositId] = useState("");
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [settings, setSettings] = useState<Settings>(fallbackSettings);
@@ -42,8 +44,15 @@ function DepositPage() {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [depositStatus, setDepositStatus] = useState("pending");
+  const [phone, setPhone] = useState("");
+  const [otp, setOtp] = useState("");
+  const [transactionReference, setTransactionReference] = useState("");
+  const [korapayAuthModel, setKorapayAuthModel] = useState<string | null>(null);
+  const [korapayMessage, setKorapayMessage] = useState("");
 
   const selectedMethod = activeMethods.find((m) => m.id === method);
+  const isKorapayMethod = !!selectedMethod && selectedMethod.type === "mobile_money";
+  const korapayNetwork = selectedMethod?.name.toLowerCase().includes("orange") ? "orange" : selectedMethod?.name.toLowerCase().includes("mtn") ? "mtn" : null;
   const amountNumber = Number(amount);
   const minAmount = Number(settings.deposit_min_amount ?? fallbackSettings.deposit_min_amount);
   const maxAmount = Number(settings.deposit_max_amount ?? fallbackSettings.deposit_max_amount);
@@ -109,6 +118,39 @@ function DepositPage() {
   async function copy(value: string) {
     await navigator.clipboard.writeText(value);
     toast.success("Copied to clipboard");
+  }
+
+  async function startKorapay() {
+    if (!user || !selectedMethod || !korapayNetwork) return;
+    if (!phone.trim()) { toast.error("Enter your Cameroon mobile number."); return; }
+    setSubmitting(true);
+    try {
+      const result = await initiateKorapayMobileMoney({ data: { amount: amountNumber, methodId: selectedMethod.id, phone, network: korapayNetwork } });
+      setReference(result.merchantReference);
+      setDepositId(result.depositId);
+      setTransactionReference(result.transactionReference || "");
+      setKorapayAuthModel(result.authModel || null);
+      setKorapayMessage(result.message || "Authorize the payment on your phone.");
+      setDepositStatus(result.status || "processing");
+      if (result.redirectUrl) window.location.assign(result.redirectUrl);
+      else setStep(4);
+    } catch (error) { toast.error(error instanceof Error ? error.message : "Could not start payment."); }
+    finally { setSubmitting(false); }
+  }
+
+  async function submitOtp() {
+    if (!transactionReference || !reference) return;
+    setSubmitting(true);
+    try {
+      const result = await authorizeKorapayMobileMoney({ data: { depositId, transactionReference, otp } });
+      setKorapayMessage(result.message || "Payment authorization received.");
+      setDepositStatus(result.status || "processing");
+      if (result.status === "success") {
+        const verified = await verifyKorapayPayment({ data: { depositId } });
+        setDepositStatus(verified.status);
+      }
+    } catch (error) { toast.error(error instanceof Error ? error.message : "Could not authorize payment."); }
+    finally { setSubmitting(false); }
   }
 
   function next() {
@@ -265,36 +307,41 @@ function DepositPage() {
         )}
 
         {step === 3 && (
-          <Screen
-            eyebrow="Screen 3 · Step 3"
-            title="Complete your payment"
-            description="Send the exact amount to the active account below."
-          >
-            {selectedMethod ? (
+          <Screen eyebrow="Screen 3 · Step 3" title={isKorapayMethod ? "Enter your mobile number" : "Complete your payment"} description={isKorapayMethod ? "Korapay will send a payment prompt to your phone." : "Send the exact amount to the active account below."}>
+            {selectedMethod && isKorapayMethod ? (
+              <div className="mx-auto flex w-full max-w-md flex-col gap-3">
+                <Detail label="Amount" value={`${money(amount)} FCFA`} />
+                <Detail label="Network" value={korapayNetwork === "orange" ? "Orange Money" : "MTN Mobile Money"} />
+                <Input value={phone} onChange={(e) => setPhone(e.target.value)} inputMode="tel" placeholder="6XXXXXXXX" />
+              </div>
+            ) : selectedMethod ? (
               <div className="mx-auto flex w-full max-w-md flex-col gap-2">
                 <Detail label="Amount to send" value={`${money(amount)} FCFA`} onCopy={() => copy(String(amountNumber))} />
                 <Detail label="Send to number" value={selectedMethod.number} onCopy={() => copy(selectedMethod.number)} />
                 <Detail label="Account name" value={selectedMethod.accountName ?? "—"} onCopy={selectedMethod.accountName ? () => copy(selectedMethod.accountName!) : undefined} />
-                {selectedMethod.instructions && (
-                  <div className="rounded-xl border border-border bg-background p-3 text-[11px] leading-relaxed text-muted-foreground">
-                    {selectedMethod.instructions}
-                  </div>
-                )}
+                {selectedMethod.instructions && <div className="rounded-xl border border-border bg-background p-3 text-[11px] leading-relaxed text-muted-foreground">{selectedMethod.instructions}</div>}
               </div>
-            ) : (
-              <div className="text-center text-sm text-muted-foreground">Choose a payment method first.</div>
-            )}
-            <FooterActions onBack={() => setStep(2)} onNext={next} nextLabel="I have paid" nextDisabled={!selectedMethod} />
+            ) : <div className="text-center text-sm text-muted-foreground">Choose a payment method first.</div>}
+            <FooterActions onBack={() => setStep(2)} onNext={isKorapayMethod ? startKorapay : next} nextLabel={isKorapayMethod ? (submitting ? "Starting…" : "Pay now") : "I have paid"} nextDisabled={!selectedMethod || submitting} />
           </Screen>
         )}
 
         {step === 4 && (
           <Screen
             eyebrow="Screen 4 · Step 4"
-            title={submitted ? "Payment submitted!" : "Upload payment proof"}
-            description={submitted ? "Your payment proof is being reviewed. We'll notify you once the deposit is credited." : "Upload your payment screenshot or receipt."}
-          >
-            {!submitted ? (
+            title={isKorapayMethod ? "Authorize your payment" : (submitted ? "Payment submitted!" : "Upload payment proof")}
+            description={isKorapayMethod ? "Complete the Mobile Money authorization to finish your deposit." : (submitted ? "Your payment proof is being reviewed. We'll notify you once the deposit is credited." : "Upload your payment screenshot or receipt.")}
+          >            {isKorapayMethod ? (
+              <div className="mx-auto w-full max-w-md space-y-3">
+                <Detail label="Amount" value={`${money(amount)} FCFA`} />
+                <Detail label="Network" value={korapayNetwork === "orange" ? "Orange Money" : "MTN Mobile Money"} />
+                <Detail label="Status" value={depositStatus === "approved" ? "Payment confirmed" : depositStatus} />
+                <p className="rounded-xl border border-border bg-background p-3 text-center text-sm text-muted-foreground">{korapayMessage || "Authorize the payment on your phone."}</p>
+                {korapayAuthModel === "OTP" && <Input value={otp} onChange={(e) => setOtp(e.target.value)} inputMode="numeric" placeholder="Enter OTP" />}
+                {korapayAuthModel === "OTP" && <Button onClick={submitOtp} disabled={submitting || !otp} className="h-11">Authorize payment</Button>}
+                {korapayAuthModel !== "OTP" && depositStatus !== "approved" && <Button onClick={async () => { setSubmitting(true); try { const r = await verifyKorapayPayment({data:{depositId}}); setDepositStatus(r.status); setKorapayMessage(r.reason || "Checking payment status…"); } catch(e) { toast.error(e instanceof Error ? e.message : "Could not check payment."); } finally { setSubmitting(false); } }} disabled={submitting} className="h-11">Check payment status</Button>}
+              </div>
+            ) : (!submitted ? (
               <div className="mx-auto w-full max-w-md">
                 <label htmlFor="proof" className="flex h-48 cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-[#c9a94b] bg-[#ffd45a]/5 p-4 text-center">
                   <Upload className="size-10 text-[#ffd45a]" />
@@ -341,14 +388,18 @@ function DepositPage() {
                   <Detail label="Status" value={depositStatus === "pending" ? "Verifying" : depositStatus} />
                 </div>
               </div>
+            )
             )}
+            {isKorapayMethod ? <FooterActions onBack={() => setStep(3)} onNext={() => navigate({ to: "/dashboard" })} nextLabel="Back to dashboard" /> : (
             <FooterActions
               onBack={!submitted ? () => setStep(3) : undefined}
               onNext={submitted ? () => navigate({ to: "/dashboard" }) : submitProof}
               nextLabel={submitted ? "Back to dashboard" : submitting ? "Submitting…" : "Submit deposit"}
               nextDisabled={!submitted && (!uploadedFile || submitting)}
             />
+            )}
           </Screen>
+
         )}
       </section>
     </main>
