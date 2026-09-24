@@ -61,7 +61,10 @@ function readKoraMessage(body: unknown) {
     message?: unknown;
     data?: { message?: unknown; [key: string]: unknown } | null;
   };
-  if (typeof value.message === "string" && value.message.trim()) return value.message;
+  if (typeof value.message === "string" && value.message.trim()) {
+    const details = value.data && typeof value.data === "object" ? Object.entries(value.data).filter(([, item]) => item !== null && item !== undefined && item !== "").map(([key, item]) => `${key}: ${typeof item === "string" ? item : JSON.stringify(item)}`).join("; ") : "";
+    return details ? `${value.message} — ${details}` : value.message;
+  }
   if (typeof value.data?.message === "string" && value.data.message.trim()) return value.data.message;
   const details = value.data && typeof value.data === "object"
     ? Object.entries(value.data)
@@ -74,6 +77,7 @@ function readKoraMessage(body: unknown) {
 
 async function koraRequest(path: string, init: RequestInit) {
   const config = await korapayConfig();
+  console.info("[korapay] request", { path, method: init.method ?? "GET" });
   const res = await fetch(`${KORA_BASE_URL}${path}`, {
     ...init,
     headers: {
@@ -83,6 +87,8 @@ async function koraRequest(path: string, init: RequestInit) {
     },
   });
   const body = await res.json().catch(() => null);
+  const safeBody = body && typeof body === "object" ? (() => { const value = body as Record<string, unknown>; const data = value.data && typeof value.data === "object" ? value.data as Record<string, unknown> : null; return { status: value.status, code: value.code, message: value.message, data: data ? { message: data.message, status: data.status, auth_model: data.auth_model, transaction_reference: data.transaction_reference, payment_reference: data.payment_reference, reference: data.reference, currency: data.currency, amount: data.amount, amount_expected: data.amount_expected, amount_paid: data.amount_paid, mobile_money: data.mobile_money, errors: data.errors } : null }; })() : body;
+  console.info("[korapay] response", { path, httpStatus: res.status, body: safeBody });
   return { res, body };
 }
 
