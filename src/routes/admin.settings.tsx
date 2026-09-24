@@ -60,7 +60,9 @@ type Settings = {
   mtn_enabled: boolean | null;
   orange_enabled: boolean | null;
   korapay_enabled: boolean | null;
-  korapay_secret_key: string | null;
+  korapay_mode: "test" | "live" | null;
+  korapay_test_secret_key: string | null;
+  korapay_live_secret_key: string | null;
   korapay_webhook_url: string | null;
 };
 
@@ -98,7 +100,14 @@ function AdminSettings() {
     const { data } = await (supabase as any).rpc("get_app_settings_admin");
     const row = Array.isArray(data) ? data[0] : data;
     const { data: kora } = await (supabase as any).rpc("get_korapay_config_admin");
-    setS({ ...((row as Settings) ?? ({ id: 1 } as Settings)), korapay_enabled: !!kora?.enabled, korapay_secret_key: kora?.secret_key ?? null, korapay_webhook_url: kora?.webhook_url ?? null });
+    setS({
+      ...((row as Settings) ?? ({ id: 1 } as Settings)),
+      korapay_enabled: !!kora?.enabled,
+      korapay_mode: kora?.mode === "live" ? "live" : "test",
+      korapay_test_secret_key: kora?.test_secret_key ?? null,
+      korapay_live_secret_key: kora?.live_secret_key ?? null,
+      korapay_webhook_url: kora?.webhook_url ?? null,
+    });
   }
   useEffect(() => {
     load();
@@ -153,7 +162,9 @@ function AdminSettings() {
       };
       const { error: korapayError } = await (supabase as any).rpc("save_korapay_config_admin", {
         p_enabled: !!s.korapay_enabled,
-        p_secret_key: s.korapay_secret_key,
+        p_mode: s.korapay_mode === "live" ? "live" : "test",
+        p_test_secret_key: s.korapay_test_secret_key,
+        p_live_secret_key: s.korapay_live_secret_key,
         p_webhook_url: s.korapay_webhook_url,
       });
       if (korapayError) throw korapayError;
@@ -220,8 +231,20 @@ function AdminSettings() {
     </div>
     <div className="grid gap-3 sm:grid-cols-2">
       <div className="sm:col-span-2">
-        <Label>Korapay Secret Key</Label>
-        <Input type={showSecret ? "text" : "password"} value={s.korapay_secret_key ?? ""} onChange={(e) => set("korapay_secret_key", e.target.value)} placeholder="Enter your Korapay secret key" autoComplete="off" />
+        <Label>Korapay Mode</Label>
+        <select className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm" value={s.korapay_mode ?? "test"} onChange={(e) => set("korapay_mode", e.target.value as "test" | "live")}>
+          <option value="test">Test mode</option>
+          <option value="live">Live mode</option>
+        </select>
+        <p className="mt-1 text-xs text-muted-foreground">Switch between test and live credentials from this panel.</p>
+      </div>
+      <div>
+        <Label>Test Secret Key</Label>
+        <Input type={showSecret ? "text" : "password"} value={s.korapay_test_secret_key ?? ""} onChange={(e) => set("korapay_test_secret_key", e.target.value)} placeholder="sk_test_..." autoComplete="off" />
+      </div>
+      <div>
+        <Label>Live Secret Key</Label>
+        <Input type={showSecret ? "text" : "password"} value={s.korapay_live_secret_key ?? ""} onChange={(e) => set("korapay_live_secret_key", e.target.value)} placeholder="sk_live_..." autoComplete="off" />
       </div>
       <div className="sm:col-span-2">
         <Label>Webhook URL</Label>
