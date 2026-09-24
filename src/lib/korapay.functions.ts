@@ -311,6 +311,7 @@ export const initiateKorapayMobileMoney = createServerFn({ method: "POST" })
       description: `Fidelity wallet deposit - ${data.network === "mtn" ? "MTN" : "Orange"} Mobile Money`,
       // Korapay can detect the Cameroon operator from the customer number.
       // Omitting network avoids rejecting otherwise valid Cameroon numbers because of provider-label formatting.
+      network: data.network === "mtn" ? "Mtn" : "Orange",
       mobile_money: { number: phone },
     };
 
