@@ -15,6 +15,7 @@ type KoraData = {
   auth_model?: string;
   transaction_reference?: string;
   payment_reference?: string;
+  reference?: string;
   message?: string;
   authorization?: { redirect_url?: string };
   mobile_money?: { number?: string };
@@ -147,7 +148,7 @@ async function settleSuccessfulKorapayDeposit(
     .from("mm_messages")
     .insert({
       raw_text: `Mobile Money charge.success ${gatewayReference} ${amount} XAF`,
-      sender: "korapay",
+      sender: "mobile_money",
       txn_id: gatewayReference,
       txn_id_norm: normalized,
       amount,
@@ -285,7 +286,7 @@ export const initiateKorapayMobileMoney = createServerFn({ method: "POST" })
         reference: merchantReference,
         status: "pending",
         payer_phone: phone,
-        auto_note: `Korapay ${data.network === "mtn" ? "MTN" : "Orange"} payment created`,
+        auto_note: `Mobile Money ${data.network === "mtn" ? "MTN" : "Orange"} payment created`,
       })
       .select("id")
       .maybeSingle();
@@ -302,7 +303,8 @@ export const initiateKorapayMobileMoney = createServerFn({ method: "POST" })
       },
       merchant_bears_cost: true,
       description: `Fidelity wallet deposit - ${data.network === "mtn" ? "MTN" : "Orange"} Mobile Money`,
-      network: data.network === "mtn" ? "Mtn" : "Orange",
+      // Korapay can detect the Cameroon operator from the customer number.
+      // Omitting network avoids rejecting otherwise valid Cameroon numbers because of provider-label formatting.
       mobile_money: { number: phone },
     };
 
@@ -319,13 +321,13 @@ export const initiateKorapayMobileMoney = createServerFn({ method: "POST" })
         throw new Error(message);
       }
 
-      const gatewayReference = kora.transaction_reference ?? kora.payment_reference ?? "";
+      const gatewayReference = kora.transaction_reference ?? kora.payment_reference ?? kora.reference ?? "";
       if (gatewayReference) {
         await supabaseAdmin
           .from("deposits")
           .update({
             ocr_txn_id: gatewayReference,
-            auto_note: `Korapay ${data.network === "mtn" ? "MTN" : "Orange"}: ${kora.message ?? kora.status ?? "processing"}`,
+            auto_note: `Mobile Money ${data.network === "mtn" ? "MTN" : "Orange"}: ${kora.message ?? kora.status ?? "processing"}`,
           })
           .eq("id", deposit.id)
           .eq("status", "pending");
@@ -354,11 +356,11 @@ export const initiateKorapayMobileMoney = createServerFn({ method: "POST" })
     } catch (error) {
       const lookup = await koraRequest(`/charges/${encodeURIComponent(merchantReference)}`, { method: "GET" }).catch(() => null);
       const lookupData = (lookup?.body as { data?: KoraData } | null)?.data;
-      const gatewayReference = lookupData?.reference ?? "";
+      const gatewayReference = lookupData?.transaction_reference ?? lookupData?.payment_reference ?? lookupData?.reference ?? "";
       if (lookupData && gatewayReference) {
         await supabaseAdmin
           .from("deposits")
-          .update({ ocr_txn_id: gatewayReference, auto_note: "Korapay request recovered by transaction lookup" })
+          .update({ ocr_txn_id: gatewayReference, auto_note: "Mobile Money request recovered by transaction lookup" })
           .eq("id", deposit.id)
           .eq("status", "pending");
 
@@ -400,7 +402,7 @@ export const authorizeKorapayMobileMoney = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { depositId: string; transactionReference: string; otp: string }) => {
     if (!/^[0-9a-f-]{36}$/i.test(data.depositId)) throw new Error("Invalid deposit.");
-    if (!data.transactionReference || data.transactionReference.length > 120) throw new Error("Invalid Korapay reference.");
+    if (!data.transactionReference || data.transactionReference.length > 120) throw new Error("Invalid Mobile Money transaction reference.");
     if (!/^\d{4,8}$/.test(data.otp)) throw new Error("Enter the OTP sent to your mobile number.");
     return data;
   })
