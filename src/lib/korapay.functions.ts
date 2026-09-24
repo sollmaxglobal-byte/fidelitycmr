@@ -107,7 +107,7 @@ async function rejectKorapayDeposit(depositId: string, reason: string) {
 async function getDepositForUser(depositId: string, userId: string) {
   const { data, error } = await supabaseAdmin
     .from("deposits")
-    .select("id,user_id,amount,reference,status,payment_method_id,payer_phone,ocr_txn_id")
+    .select("id,user_id,amount,reference,status,payment_method_id,payer_phone,ocr_txn_id,auto_note")
     .eq("id", depositId)
     .eq("user_id", userId)
     .maybeSingle();
@@ -185,9 +185,16 @@ async function verifyKorapayReference(
   merchantReference: string,
   gatewayReference: string,
   expectedAmount: number,
+  fallbackReference?: string,
 ) {
-  const { res, body } = await koraRequest(`/charges/${encodeURIComponent(gatewayReference)}`, { method: "GET" });
-  const data = (body as { data?: KoraData } | null)?.data;
+  let { res, body } = await koraRequest(`/charges/${encodeURIComponent(gatewayReference)}`, { method: "GET" });
+  let data = (body as { data?: KoraData } | null)?.data;
+  if ((!res.ok || !data) && fallbackReference && fallbackReference !== gatewayReference) {
+    const fallback = await koraRequest(`/charges/${encodeURIComponent(fallbackReference)}`, { method: "GET" });
+    res = fallback.res;
+    body = fallback.body;
+    data = (body as { data?: KoraData } | null)?.data;
+  }
   if (!res.ok || !data) {
     return { status: "pending", message: readKoraMessage(body) };
   }
@@ -334,7 +341,7 @@ export const initiateKorapayMobileMoney = createServerFn({ method: "POST" })
           .from("deposits")
           .update({
             ocr_txn_id: gatewayReference,
-            auto_note: `Mobile Money ${data.network === "mtn" ? "MTN" : "Orange"}: ${kora.message ?? kora.status ?? "processing"}`,
+            auto_note: `Mobile Money ${data.network === "mtn" ? "MTN" : "Orange"}: ${kora.message ?? kora.status ?? "processing"}${kora.payment_reference ? ` | payment_ref:${kora.payment_reference}` : ""}`,
           })
           .eq("id", deposit.id)
           .eq("status", "pending");
@@ -475,10 +482,12 @@ export const verifyKorapayPayment = createServerFn({ method: "POST" })
     const gatewayReference = deposit.ocr_txn_id;
     if (!gatewayReference) return { status: "pending", approved: false, reason: "Waiting for the Mobile Money transaction reference" };
 
+    const paymentReference = deposit.auto_note?.match(/payment_ref:([^|\\s]+)/)?.[1];
     return verifyKorapayReference(
       deposit.id,
       deposit.reference!,
       gatewayReference,
       Number(deposit.amount),
+      paymentReference,
     );
   });
