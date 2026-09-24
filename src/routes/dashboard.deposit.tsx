@@ -53,7 +53,9 @@ function DepositPage() {
 
   const selectedMethod = activeMethods.find((m) => m.id === method);
   const isKorapayMethod = !!selectedMethod && selectedMethod.provider === "korapay";
-  const korapayNetwork = selectedMethod?.name.toLowerCase().includes("orange") ? "orange" : selectedMethod?.name.toLowerCase().includes("mtn") ? "mtn" : null;
+  const korapayNetwork = selectedMethod?.provider === "korapay"
+    ? selectedMethod.name.toLowerCase().includes("orange") ? "orange" : "mtn"
+    : null;
   const amountNumber = Number(amount);
   const minAmount = Number(settings.deposit_min_amount ?? fallbackSettings.deposit_min_amount);
   const maxAmount = Number(settings.deposit_max_amount ?? fallbackSettings.deposit_max_amount);
@@ -84,7 +86,12 @@ function DepositPage() {
           methodsData
             .map((item) => ({
               id: item.id,
-              name: item.label,
+              name:
+                item.provider === "korapay"
+                  ? item.label.toLowerCase().includes("orange")
+                    ? "Orange Money"
+                    : "MTN Mobile Money"
+                  : item.label,
               number: item.account_number ?? "",
               enabled: item.active,
               color: item.type === "mobile_money" ? "#ffd45a" : "#0f766e",
@@ -317,7 +324,7 @@ function DepositPage() {
         )}
 
         {step === 3 && (
-          <Screen eyebrow="Screen 3 · Step 3" title={isKorapayMethod ? "Confirm Mobile Money payment" : "Complete your payment"} description={isKorapayMethod ? "Korapay will send the authorization prompt to the configured Mobile Money number below." : "Send the exact amount to the active account below."}>
+          <Screen eyebrow="Screen 3 · Step 3" title={isKorapayMethod ? "Confirm Mobile Money payment" : "Complete your payment"} description={isKorapayMethod ? "A payment authorization prompt will be sent to the configured Mobile Money number below." : "Send the exact amount to the active account below."}>
             {selectedMethod && isKorapayMethod ? (
               <div className="mx-auto flex w-full max-w-md flex-col gap-3">
                 <Detail label="Amount" value={money(amount) + " FCFA"} />
@@ -334,7 +341,7 @@ function DepositPage() {
                     className="mt-2 h-12 border-[#c9a94b]/60 bg-[#111116] text-base font-bold"
                   />
                   <p className="mt-2 text-[11px] text-muted-foreground">
-                    Enter the {korapayNetwork === "orange" ? "Orange Money" : "MTN Mobile Money"} number you will use to pay. Korapay will send the authorization prompt to this number.
+                    Enter the {korapayNetwork === "orange" ? "Orange Money" : "MTN Mobile Money"} number you will use to pay. A payment authorization prompt will be sent to this number.
                   </p>
                 </div>
               </div>
