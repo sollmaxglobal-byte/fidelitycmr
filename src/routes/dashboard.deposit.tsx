@@ -44,7 +44,6 @@ function DepositPage() {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [depositStatus, setDepositStatus] = useState("pending");
-  const [phone, setPhone] = useState("");
   const [otp, setOtp] = useState("");
   const [transactionReference, setTransactionReference] = useState("");
   const [korapayAuthModel, setKorapayAuthModel] = useState<string | null>(null);
@@ -92,7 +91,7 @@ function DepositPage() {
               type: item.type,
               logoUrl: item.logo_url ?? undefined,
             }))
-            .filter((item) => item.number),
+            
         );
       }
       if (mounted) setLoading(false);
@@ -122,11 +121,9 @@ function DepositPage() {
 
   async function startKorapay() {
     if (!user || !selectedMethod || !korapayNetwork) return;
-    const normalizedPhone = phone.replace(/\D/g, "");
-    if (!normalizedPhone) { toast.error("Enter your Cameroon mobile number."); return; }
     setSubmitting(true);
     try {
-      const result = await initiateKorapayMobileMoney({ data: { amount: amountNumber, methodId: selectedMethod.id, phone: normalizedPhone, network: korapayNetwork } });
+      const result = await initiateKorapayMobileMoney({ data: { amount: amountNumber, methodId: selectedMethod.id, phone: selectedMethod.number.replace(/\D/g, ""), network: korapayNetwork } });
       setReference(result.merchantReference);
       setDepositId(result.depositId);
       setTransactionReference(result.transactionReference || "");
@@ -308,7 +305,7 @@ function DepositPage() {
         )}
 
         {step === 3 && (
-          <Screen eyebrow="Screen 3 · Step 3" title={isKorapayMethod ? "Enter your mobile number" : "Complete your payment"} description={isKorapayMethod ? "Korapay will send a payment prompt to your phone." : "Send the exact amount to the active account below."}>
+          <Screen eyebrow="Screen 3 · Step 3" title={isKorapayMethod ? "Confirm Mobile Money payment" : "Complete your payment"} description={isKorapayMethod ? "Korapay will send the authorization prompt to the configured Mobile Money number below." : "Send the exact amount to the active account below."}>
             {selectedMethod && isKorapayMethod ? (
               <div className="mx-auto flex w-full max-w-md flex-col gap-3">
                 <Detail label="Amount" value={`${money(amount)} FCFA`} />
