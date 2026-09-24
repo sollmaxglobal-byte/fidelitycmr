@@ -154,7 +154,7 @@ function DepositPage() {
     finally { setSubmitting(false); }
   }
 
-  function next() {
+  async function next() {
     if (step === 1) {
       if (!amount || amountNumber < minAmount || amountNumber > maxAmount) {
         toast.error(amountError || "Enter a valid amount.");
