@@ -27,14 +27,14 @@ async function korapayConfig() {
     .eq("id", 1)
     .maybeSingle();
   if (error) throw error;
-  if (!data?.enabled) throw new Error("Korapay deposits are currently disabled by the administrator.");
+  if (!data?.enabled) throw new Error("Mobile Money deposits are currently disabled by the administrator.");
   const mode = data.mode === "live" ? "live" : "test";
   const key =
     (mode === "live" ? data.live_secret_key : data.test_secret_key)?.trim() ||
     data.secret_key?.trim() ||
     (mode === "live" ? process.env.KORAPAY_LIVE_SECRET_KEY : process.env.KORAPAY_TEST_SECRET_KEY)?.trim() ||
     process.env.KORAPAY_SECRET_KEY?.trim();
-  if (!key) throw new Error("Korapay is not configured. Add the secret key in Admin → Site settings.");
+  if (!key) throw new Error("Mobile Money is not configured. Please contact support.");
   return { key, mode, webhookUrl: data.webhook_url?.trim() || process.env.KORAPAY_WEBHOOK_URL?.trim() || "" };
 }
 
@@ -55,7 +55,7 @@ function normalizeCameroonPhone(value: string) {
 }
 
 function readKoraMessage(body: unknown) {
-  if (!body || typeof body !== "object") return "Korapay request failed";
+  if (!body || typeof body !== "object") return "Mobile Money request failed";
   const value = body as {
     message?: unknown;
     data?: { message?: unknown; [key: string]: unknown } | null;
@@ -68,7 +68,7 @@ function readKoraMessage(body: unknown) {
         .map(([key, item]) => `${key}: ${typeof item === "string" ? item : JSON.stringify(item)}`)
         .join("; ")
     : "";
-  return details ? `Korapay rejected the request: ${details}` : "Korapay request failed";
+  return details ? `Mobile Money rejected the request: ${details}` : "Mobile Money request failed";
 }
 
 async function koraRequest(path: string, init: RequestInit) {
@@ -83,6 +83,18 @@ async function koraRequest(path: string, init: RequestInit) {
   });
   const body = await res.json().catch(() => null);
   return { res, body };
+}
+
+async function rejectKorapayDeposit(depositId: string, reason: string) {
+  await supabaseAdmin
+    .from("deposits")
+    .update({
+      status: "rejected",
+      reviewed_at: new Date().toISOString(),
+      auto_note: reason,
+    })
+    .eq("id", depositId)
+    .eq("status", "pending");
 }
 
 async function getDepositForUser(depositId: string, userId: string) {
@@ -134,7 +146,7 @@ async function settleSuccessfulKorapayDeposit(
   const { data: message, error: messageError } = await db
     .from("mm_messages")
     .insert({
-      raw_text: `Korapay charge.success ${gatewayReference} ${amount} XAF`,
+      raw_text: `Mobile Money charge.success ${gatewayReference} ${amount} XAF`,
       sender: "korapay",
       txn_id: gatewayReference,
       txn_id_norm: normalized,
@@ -179,14 +191,14 @@ async function verifyKorapayReference(
 
   if (status === "success") {
     if (currency !== "XAF" || Math.trunc(amount) !== Math.trunc(expectedAmount)) {
-      throw new Error("Korapay verification returned an amount or currency mismatch.");
+      throw new Error("Mobile Money verification returned an amount or currency mismatch.");
     }
     return settleSuccessfulKorapayDeposit(
       depositId,
       merchantReference,
       expectedAmount,
       gatewayReference,
-      `Korapay verified: ${gatewayReference}`,
+      `Mobile Money verified: ${gatewayReference}`,
     );
   }
 
@@ -197,7 +209,7 @@ async function verifyKorapayReference(
         status: "rejected",
         reviewed_at: new Date().toISOString(),
         ocr_txn_id: gatewayReference,
-        auto_note: `Korapay payment failed: ${data.message ?? "Payment failed"}`,
+        auto_note: `Mobile Money payment failed: ${data.message ?? "Payment failed"}`,
       })
       .eq("id", depositId)
       .eq("status", "pending")
@@ -209,7 +221,7 @@ async function verifyKorapayReference(
     .from("deposits")
     .update({
       ocr_txn_id: gatewayReference,
-      auto_note: `Korapay status: ${status || "processing"}`,
+      auto_note: `Mobile Money status: ${status || "processing"}`,
     })
     .eq("id", depositId)
     .eq("status", "pending")
@@ -230,7 +242,7 @@ export const initiateKorapayMobileMoney = createServerFn({ method: "POST" })
     const amount = Math.trunc(data.amount);
     const config = await korapayConfig();
     if (amount > KORA_MAX_XAF) {
-      throw new Error("Korapay Mobile Money supports up to 500,000 XAF per transaction.");
+      throw new Error("Mobile Money supports up to 500,000 XAF per transaction.");
     }
 
     const phone = normalizeCameroonPhone(data.phone);
@@ -261,7 +273,7 @@ export const initiateKorapayMobileMoney = createServerFn({ method: "POST" })
     if (profileError) throw profileError;
 
     const email = typeof context.claims?.email === "string" ? context.claims.email : "";
-    if (!email) throw new Error("Your account email is required for Korapay payments.");
+    if (!email) throw new Error("Your account email is required for Mobile Money payments.");
 
     const merchantReference = `FID-KORA-${crypto.randomUUID().replace(/-/g, "").slice(0, 24)}`;
     const { data: deposit, error: depositError } = await supabaseAdmin
@@ -290,10 +302,8 @@ export const initiateKorapayMobileMoney = createServerFn({ method: "POST" })
       },
       merchant_bears_cost: true,
       description: `Fidelity wallet deposit - ${data.network === "mtn" ? "MTN" : "Orange"} Mobile Money`,
-      mobile_money: {
-        number: phone,
-        network: data.network === "mtn" ? "Mtn" : "Orange",
-      },
+      network: data.network === "mtn" ? "Mtn" : "Orange",
+      mobile_money: { number: phone },
     };
 
     let body: unknown;
@@ -378,7 +388,7 @@ export const initiateKorapayMobileMoney = createServerFn({ method: "POST" })
         .update({
           status: "rejected",
           reviewed_at: new Date().toISOString(),
-          auto_note: `Korapay could not start the payment: ${(error as Error).message}`,
+          auto_note: `Mobile Money could not start the payment: ${(error as Error).message}`,
         })
         .eq("id", deposit.id)
         .eq("status", "pending");
@@ -403,13 +413,17 @@ export const authorizeKorapayMobileMoney = createServerFn({ method: "POST" })
       body: JSON.stringify({ reference: data.transactionReference, token: data.otp }),
     });
     const kora = (body as { data?: KoraData } | null)?.data;
-    if (!res.ok || !kora) throw new Error(readKoraMessage(body));
+    if (!res.ok || !kora) {
+      const message = readKoraMessage(body);
+      await rejectKorapayDeposit(deposit.id, `Mobile Money payment cancelled: ${message}`);
+      throw new Error(message);
+    }
 
     await supabaseAdmin
       .from("deposits")
       .update({
         ocr_txn_id: kora.transaction_reference ?? data.transactionReference,
-        auto_note: `Korapay authorization: ${kora.message ?? kora.status ?? "processing"}`,
+        auto_note: `Mobile Money authorization: ${kora.message ?? kora.status ?? "processing"}`,
       })
       .eq("id", deposit.id)
       .eq("status", "pending");
@@ -424,11 +438,17 @@ export const authorizeKorapayMobileMoney = createServerFn({ method: "POST" })
       };
     }
 
+    const status = String(kora.status ?? "processing").toLowerCase();
+    const message = kora.message ?? "Authorize the payment on your phone.";
+    if (status === "failed") {
+      await rejectKorapayDeposit(deposit.id, `Mobile Money payment cancelled: ${message}`);
+    }
+
     return {
-      status: kora.status ?? "processing",
+      status: status === "failed" ? "rejected" : status,
       authModel: kora.auth_model ?? "STK_PROMPT",
       transactionReference: kora.transaction_reference ?? data.transactionReference,
-      message: kora.message ?? "Authorize the payment on your phone.",
+      message,
       redirectUrl: kora.authorization?.redirect_url ?? null,
     };
   });
@@ -444,7 +464,7 @@ export const verifyKorapayPayment = createServerFn({ method: "POST" })
     if (deposit.status !== "pending") return { status: deposit.status, approved: deposit.status === "approved" };
 
     const gatewayReference = deposit.ocr_txn_id;
-    if (!gatewayReference) return { status: "pending", approved: false, reason: "Waiting for Korapay transaction reference" };
+    if (!gatewayReference) return { status: "pending", approved: false, reason: "Waiting for the Mobile Money transaction reference" };
 
     return verifyKorapayReference(
       deposit.id,
