@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { initiateKorapayMobileMoney, authorizeKorapayMobileMoney, verifyKorapayPayment } from "@/lib/korapay.functions";
 import { Input } from "@/components/ui/input";
 
+// Deposit methods include active Korapay Test-mode methods from Supabase configuration.
 export const Route = createFileRoute("/dashboard/deposit")({ component: DepositPage });
 
 type Method = {
@@ -373,7 +374,6 @@ function DepositPage() {
                     <Button type="button" size="icon" variant="ghost" className="size-7" onClick={() => setUploadedFile(null)} aria-label="Remove proof">
                       <X className="size-4" />
                     </Button>
-                  </div>
                 )}
               </div>
             ) : (
