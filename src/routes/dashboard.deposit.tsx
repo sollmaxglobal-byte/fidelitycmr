@@ -117,13 +117,26 @@ function DepositPage() {
   }, [step, activeMethods, method]);
 
   useEffect(() => {
-    if (step !== 4 || !reference || !submitted) return;
-    const poll = window.setInterval(async () => {
-      const { data } = await supabase.from("deposits").select("status").eq("reference", reference).maybeSingle();
-      if (data?.status) setDepositStatus(data.status);
-    }, 10000);
-    return () => window.clearInterval(poll);
-  }, [step, reference, submitted]);
+    if (step !== 4 || !depositId || !isKorapayMethod || depositStatus === "approved" || depositStatus === "rejected") return;
+    let cancelled = false;
+    const check = async () => {
+      try {
+        const result = await verifyKorapayPayment({ data: { depositId } });
+        if (!cancelled) {
+          setDepositStatus(result.status);
+          if (result.reason) setKorapayMessage(result.reason);
+        }
+      } catch {
+        // The payment can remain processing while the provider is waiting for the customer's authorization.
+      }
+    };
+    void check();
+    const poll = window.setInterval(() => void check(), 10000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(poll);
+    };
+  }, [step, depositId, isKorapayMethod, depositStatus]);
 
   async function copy(value: string) {
     await navigator.clipboard.writeText(value);
