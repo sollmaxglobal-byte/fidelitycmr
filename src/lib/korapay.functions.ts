@@ -3,7 +3,8 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { normalizeTxnId } from "@/lib/mm-parse";
 
-const KORA_BASE_URL = "https://api.korapay.com/merchant/api/v1";
+const KORA_LIVE_BASE_URL = "https://api.korapay.com/merchant/api/v1";
+const KORA_TEST_BASE_URL = "https://api.korapay.com/sandbox/merchant/api/v1";
 const KORA_MAX_XAF = 500_000;
 
 type KoraData = {
@@ -36,7 +37,8 @@ async function korapayConfig() {
     (mode === "live" ? process.env.KORAPAY_LIVE_SECRET_KEY : process.env.KORAPAY_TEST_SECRET_KEY)?.trim() ||
     process.env.KORAPAY_SECRET_KEY?.trim();
   if (!key) throw new Error("Mobile Money is not configured. Please contact support.");
-  return { key, mode, webhookUrl: data.webhook_url?.trim() || process.env.KORAPAY_WEBHOOK_URL?.trim() || "" };
+  const baseUrl = mode === "test" ? KORA_TEST_BASE_URL : KORA_LIVE_BASE_URL;
+  return { key, mode, baseUrl, webhookUrl: data.webhook_url?.trim() || process.env.KORAPAY_WEBHOOK_URL?.trim() || "" };
 }
 
 
@@ -78,7 +80,7 @@ function readKoraMessage(body: unknown) {
 async function koraRequest(path: string, init: RequestInit) {
   const config = await korapayConfig();
   console.info("[korapay] request", { path, method: init.method ?? "GET" });
-  const res = await fetch(`${KORA_BASE_URL}${path}`, {
+  const res = await fetch(`${config.baseUrl}${path}`, {
     ...init,
     headers: {
       "Content-Type": "application/json",
@@ -255,11 +257,6 @@ export const initiateKorapayMobileMoney = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const amount = Math.trunc(data.amount);
     const config = await korapayConfig();
-
-    // Kora's public Mobile Money charge API currently documents KES and GHS only.
-    // Fidelity's customer flow is Cameroon/XAF, so do not create a misleading pending
-    // deposit that the gateway cannot process.
-    throw new Error("Mobile Money payments for Cameroon/XAF are not currently supported by this payment provider.");
     if (amount > KORA_MAX_XAF) {
       throw new Error("Mobile Money supports up to 500,000 XAF per transaction.");
     }
@@ -359,6 +356,7 @@ export const initiateKorapayMobileMoney = createServerFn({ method: "POST" })
           authModel: "SUCCESS",
           status: "success",
           message: "Payment completed. Verifying your deposit.",
+          mode: config.mode,
         };
       }
 
@@ -370,6 +368,7 @@ export const initiateKorapayMobileMoney = createServerFn({ method: "POST" })
         status: kora.status ?? "processing",
         message: kora.message ?? "Authorize the payment on your phone.",
         redirectUrl: kora.authorization?.redirect_url ?? null,
+        mode: config.mode,
       };
     } catch (error) {
       const lookup = await koraRequest(`/charges/${encodeURIComponent(merchantReference)}`, { method: "GET" }).catch(() => null);
@@ -390,6 +389,7 @@ export const initiateKorapayMobileMoney = createServerFn({ method: "POST" })
             authModel: "SUCCESS",
             status: "success",
             message: "Payment completed. Verifying your deposit.",
+            mode: config.mode,
           };
         }
         return {
@@ -400,6 +400,7 @@ export const initiateKorapayMobileMoney = createServerFn({ method: "POST" })
           status: lookupData.status ?? "processing",
           message: lookupData.message ?? "Authorize the payment on your phone.",
           redirectUrl: lookupData.authorization?.redirect_url ?? null,
+          mode: config.mode,
         };
       }
 
@@ -428,9 +429,12 @@ export const authorizeKorapayMobileMoney = createServerFn({ method: "POST" })
     const deposit = await getDepositForUser(data.depositId, context.userId);
     if (deposit.status !== "pending") return { status: deposit.status, message: "This deposit has already been reviewed." };
 
-    const { res, body } = await koraRequest("/charges/mobile-money/authorize", {
+    const config = await korapayConfig();
+    const authPath = config.mode === "test" ? "/charges/mobile-money/sandbox/authorize-stk" : "/charges/mobile-money/authorize";
+    const authBody = config.mode === "test" ? { reference: data.transactionReference, pin: data.otp } : { reference: data.transactionReference, token: data.otp };
+    const { res, body } = await koraRequest(authPath, {
       method: "POST",
-      body: JSON.stringify({ reference: data.transactionReference, token: data.otp }),
+      body: JSON.stringify(authBody),
     });
     const kora = (body as { data?: KoraData } | null)?.data;
     if (!res.ok || !kora) {
