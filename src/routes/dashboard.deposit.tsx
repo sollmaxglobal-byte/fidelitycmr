@@ -48,6 +48,7 @@ function DepositPage() {
   const [otp, setOtp] = useState("");
   const [transactionReference, setTransactionReference] = useState("");
   const [korapayAuthModel, setKorapayAuthModel] = useState<string | null>(null);
+  const [korapayMode, setKorapayMode] = useState<"test" | "live">("test");
   const [korapayMessage, setKorapayMessage] = useState("");
   const [korapayPhone, setKorapayPhone] = useState("");
 
@@ -138,6 +139,7 @@ function DepositPage() {
       setDepositId(result.depositId);
       setTransactionReference(result.transactionReference || "");
       setKorapayAuthModel(result.authModel || null);
+      setKorapayMode(result.mode === "live" ? "live" : "test");
       setKorapayMessage(result.message || "Authorize the payment on your phone.");
       setDepositStatus(result.status || "processing");
       if (result.redirectUrl) window.location.assign(result.redirectUrl);
@@ -369,7 +371,8 @@ function DepositPage() {
                 <Detail label="Status" value={depositStatus === "approved" ? "Payment confirmed" : depositStatus} />
                 <p className="rounded-xl border border-border bg-background p-3 text-center text-sm text-muted-foreground">{korapayMessage || "Authorize the payment on your phone."}</p>
                 {korapayAuthModel === "OTP" && <Input value={otp} onChange={(e) => setOtp(e.target.value)} inputMode="numeric" placeholder="Enter OTP" />}
-                {korapayAuthModel === "OTP" && <Button onClick={submitOtp} disabled={submitting || !otp} className="h-11">Authorize payment</Button>}
+                {korapayMode === "test" && korapayAuthModel === "STK_PROMPT" && <Input value={otp} onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 4))} inputMode="numeric" placeholder="Test wallet PIN (1234)" />}
+                {(korapayAuthModel === "OTP" || (korapayMode === "test" && korapayAuthModel === "STK_PROMPT")) && <Button onClick={submitOtp} disabled={submitting || !otp} className="h-11">{korapayMode === "test" ? "Authorize test payment" : "Authorize payment"}</Button>}
                 {korapayAuthModel !== "OTP" && depositStatus !== "approved" && <Button onClick={async () => { setSubmitting(true); try { const r = await verifyKorapayPayment({data:{depositId}}); setDepositStatus(r.status); setKorapayMessage(r.reason || "Checking payment status…"); } catch(e) { toast.error(e instanceof Error ? e.message : "Could not check payment."); } finally { setSubmitting(false); } }} disabled={submitting} className="h-11">Check payment status</Button>}
               </div>
             ) : (!submitted ? (
