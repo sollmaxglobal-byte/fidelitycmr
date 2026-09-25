@@ -417,7 +417,6 @@ function DepositPage() {
                 )}
               </div>
             ) : (!submitted ? (
-            ) : (!submitted ? (
               <div className="mx-auto w-full max-w-md">
                 <label htmlFor="proof" className="flex h-48 cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-[#c9a94b] bg-[#ffd45a]/5 p-4 text-center">
                   <Upload className="size-10 text-[#ffd45a]" />
