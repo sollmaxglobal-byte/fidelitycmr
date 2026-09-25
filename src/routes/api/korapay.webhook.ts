@@ -1,3 +1,4 @@
+import { createFileRoute } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
@@ -5,6 +6,40 @@ import { normalizeTxnId } from "@/lib/mm-parse";
 
 const KORA_BASE_URL = "https://api.korapay.com/merchant/api/v1";
 const KORA_MAX_XAF = 500_000;
+
+type KorapayWebhookPayload = {
+  event?: string;
+  data?: {
+    reference?: string;
+    payment_reference?: string;
+    amount?: number | string;
+    amount_expected?: number | string;
+    amount_paid?: number | string;
+    currency?: string;
+    status?: string;
+    payment_method?: string;
+    message?: string;
+  };
+};
+
+async function webhookSignatureIsValid(rawData: unknown, signature: string | null, secret: string) {
+  if (!signature) return false;
+  const encoded = new TextEncoder().encode(JSON.stringify(rawData));
+  const key = await crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(secret),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"],
+  );
+  const digest = new Uint8Array(await crypto.subtle.sign("HMAC", key, encoded));
+  const expected = Array.from(digest, (byte) => byte.toString(16).padStart(2, "0")).join("");
+  if (expected.length !== signature.length) return false;
+  let mismatch = 0;
+  for (let i = 0; i < expected.length; i++) mismatch |= expected.charCodeAt(i) ^ signature.charCodeAt(i);
+  return mismatch === 0;
+}
+
 
 type KoraData = {
   amount?: number | string;
@@ -436,3 +471,103 @@ export const verifyKorapayPayment = createServerFn({ method: "POST" })
       Number(deposit.amount),
     );
   });
+
+
+export const Route = createFileRoute("/api/korapay/webhook")({
+  server: {
+    handlers: {
+      POST: async ({ request }) => {
+        try {
+          const rawBody = await request.text();
+          let payload: KorapayWebhookPayload;
+          try {
+            payload = JSON.parse(rawBody) as KorapayWebhookPayload;
+          } catch {
+            return new Response(JSON.stringify({ error: "Invalid payload" }), {
+              status: 400,
+              headers: { "content-type": "application/json" },
+            });
+          }
+
+          const { data: config, error: configError } = await supabaseAdmin
+            .from("korapay_config")
+            .select("enabled,mode,test_secret_key,live_secret_key,secret_key")
+            .eq("id", 1)
+            .maybeSingle();
+          if (configError || !config?.enabled) {
+            return Response.json({ received: true });
+          }
+
+          const mode = config.mode === "live" ? "live" : "test";
+          const secret =
+            (mode === "live" ? config.live_secret_key : config.test_secret_key)?.trim() ||
+            config.secret_key?.trim() ||
+            (mode === "live" ? process.env.KORAPAY_LIVE_SECRET_KEY : process.env.KORAPAY_TEST_SECRET_KEY)?.trim() ||
+            process.env.KORAPAY_SECRET_KEY?.trim();
+          const signature = request.headers.get("x-korapay-signature");
+          if (!secret || !(await webhookSignatureIsValid(payload.data ?? {}, signature, secret))) {
+            return Response.json({ received: true });
+          }
+
+          const data = payload.data ?? {};
+          const merchantReference = data.payment_reference ?? data.reference ?? "";
+          const gatewayReference = data.reference ?? data.payment_reference ?? "";
+          if (!merchantReference || !gatewayReference) return Response.json({ received: true });
+
+          const { data: deposit } = await supabaseAdmin
+            .from("deposits")
+            .select("id,reference,amount,status")
+            .or(`reference.eq.${merchantReference},reference.eq.${gatewayReference}`)
+            .maybeSingle();
+
+          if (!deposit) return Response.json({ received: true });
+
+          const status = String(data.status ?? "").toLowerCase();
+          if (payload.event === "charge.failed" || status === "failed") {
+            await supabaseAdmin
+              .from("deposits")
+              .update({
+                status: "rejected",
+                reviewed_at: new Date().toISOString(),
+                ocr_txn_id: gatewayReference,
+                auto_note: `Mobile Money payment cancelled: ${data.message ?? "Payment failed"}`,
+              })
+              .eq("id", deposit.id)
+              .eq("status", "pending");
+            return Response.json({ received: true });
+          }
+
+          if (payload.event === "charge.success" || status === "success") {
+            const amount = Number(data.amount_paid ?? data.amount ?? data.amount_expected);
+            if (String(data.currency ?? "") !== "XAF" || Math.trunc(amount) !== Math.trunc(Number(deposit.amount))) {
+              await supabaseAdmin
+                .from("deposits")
+                .update({
+                  status: "rejected",
+                  reviewed_at: new Date().toISOString(),
+                  ocr_txn_id: gatewayReference,
+                  auto_note: "Mobile Money payment rejected because the verified amount or currency did not match the deposit.",
+                })
+                .eq("id", deposit.id)
+                .eq("status", "pending");
+              return Response.json({ received: true });
+            }
+
+            await settleSuccessfulKorapayDeposit(
+              deposit.id,
+              deposit.reference!,
+              Number(deposit.amount),
+              gatewayReference,
+              `Mobile Money payment verified: ${gatewayReference}`,
+            );
+          }
+
+          return Response.json({ received: true });
+        } catch (error) {
+          console.error("[mobile-money-webhook] processing failed", error);
+          return Response.json({ received: true });
+        }
+      },
+    },
+  },
+});
