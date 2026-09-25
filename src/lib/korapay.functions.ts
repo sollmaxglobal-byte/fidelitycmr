@@ -255,6 +255,11 @@ export const initiateKorapayMobileMoney = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const amount = Math.trunc(data.amount);
     const config = await korapayConfig();
+
+    // Kora's public Mobile Money charge API currently documents KES and GHS only.
+    // Fidelity's customer flow is Cameroon/XAF, so do not create a misleading pending
+    // deposit that the gateway cannot process.
+    throw new Error("Mobile Money payments for Cameroon/XAF are not currently supported by this payment provider.");
     if (amount > KORA_MAX_XAF) {
       throw new Error("Mobile Money supports up to 500,000 XAF per transaction.");
     }
