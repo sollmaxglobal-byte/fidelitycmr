@@ -116,9 +116,9 @@ function AdminSettings() {
   async function save() {
     if (!s) return;
     const secret = s.mm_webhook_secret?.trim() ?? "";
-    if (s.auto_approve_enabled && secret.length < 24) {
-      toast.error("Set a webhook secret with at least 24 characters before enabling automation");
-      return;
+    const autoApprovalSafe = !s.auto_approve_enabled || secret.length >= 24;
+    if (s.auto_approve_enabled && !autoApprovalSafe) {
+      toast.warning("Mobile Money gateway settings will be saved, but automatic deposit approval was disabled because its SMS webhook secret is missing or too short.");
     }
     if (s.site_url && !/^https:\/\//i.test(s.site_url)) {
       toast.error("Site URL must use HTTPS");
@@ -148,7 +148,7 @@ function AdminSettings() {
         announcement_link: s.announcement_link,
         announcement_link_label: s.announcement_link_label,
         announcement_version: (s.announcement_version ?? 1) + (reshow ? 1 : 0),
-        auto_approve_enabled: s.auto_approve_enabled ?? true,
+        auto_approve_enabled: autoApprovalSafe ? (s.auto_approve_enabled ?? true) : false,
         auto_approve_max_amount: s.auto_approve_max_amount,
         auto_withdraw_enabled: !!s.auto_withdraw_enabled,
         auto_withdraw_max_amount: s.auto_withdraw_max_amount,
@@ -220,7 +220,7 @@ function AdminSettings() {
   <section className="space-y-4 rounded-2xl border border-border bg-card p-5">
     <div>
       <h2 className="font-display text-lg text-primary">Korapay Mobile Money</h2>
-      <p className="text-sm text-muted-foreground">Configure Korapay deposits without changing your existing payment methods.</p>
+      <p className="text-sm text-muted-foreground">Configure the payment gateway without changing your existing payment methods. Note: the provider's public Mobile Money API currently documents KES/GHS, not Cameroon XAF.</p>
     </div>
     <div className="flex items-center justify-between rounded-lg bg-secondary p-3">
       <div>
@@ -286,7 +286,7 @@ function AdminSettings() {
           <h2 className="flex items-center gap-2 font-display text-lg text-primary">
           <MessageCircle className="h-5 w-5" /> Automatic deposit approval
         </h2>
-        <p className="text-xs text-muted-foreground">Forwarded SMS are stored in Admin → Forwarded SMS so you can inspect the raw message, parsed amount, transaction ID, and matching status.</p>
+        <p className="text-xs text-muted-foreground">This is separate from the payment gateway. The SMS webhook secret is only used for automatic deposit approval.</p>
         <div className="flex items-center justify-between rounded-lg bg-secondary p-3">
           <div>
             <div className="text-sm font-medium">Enable auto-approval</div>
