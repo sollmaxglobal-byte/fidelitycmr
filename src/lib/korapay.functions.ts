@@ -3,8 +3,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { normalizeTxnId } from "@/lib/mm-parse";
 
-const KORA_LIVE_BASE_URL = "https://api.korapay.com/merchant/api/v1";
-const KORA_TEST_BASE_URL = "https://api.korapay.com/sandbox/merchant/api/v1";
+const KORA_BASE_URL = "https://api.korapay.com/merchant/api/v1";
 const KORA_MAX_XAF = 500_000;
 
 type KoraData = {
@@ -37,8 +36,7 @@ async function korapayConfig() {
     (mode === "live" ? process.env.KORAPAY_LIVE_SECRET_KEY : process.env.KORAPAY_TEST_SECRET_KEY)?.trim() ||
     process.env.KORAPAY_SECRET_KEY?.trim();
   if (!key) throw new Error("Mobile Money is not configured. Please contact support.");
-  const baseUrl = mode === "test" ? KORA_TEST_BASE_URL : KORA_LIVE_BASE_URL;
-  return { key, mode, baseUrl, webhookUrl: data.webhook_url?.trim() || process.env.KORAPAY_WEBHOOK_URL?.trim() || "" };
+  return { key, mode, baseUrl: KORA_BASE_URL, webhookUrl: data.webhook_url?.trim() || process.env.KORAPAY_WEBHOOK_URL?.trim() || "" };
 }
 
 
@@ -55,6 +53,10 @@ function normalizeCameroonPhone(value: string) {
     return `237${local}`;
   }
   throw new Error("Enter a valid Cameroon mobile number, for example 6XXXXXXXX.");
+}
+
+function isCameroonSandboxTestPhone(phone: string) {
+  return phone === "237655123456" || phone === "237677123456";
 }
 
 function readKoraMessage(body: unknown) {
@@ -84,14 +86,55 @@ async function koraRequest(path: string, init: RequestInit) {
     ...init,
     headers: {
       "Content-Type": "application/json",
+      Accept: "application/json",
       Authorization: `Bearer ${config.key}`,
       ...(init.headers ?? {}),
     },
   });
-  const body = await res.json().catch(() => null);
-  const safeBody = body && typeof body === "object" ? (() => { const value = body as Record<string, unknown>; const data = value.data && typeof value.data === "object" ? value.data as Record<string, unknown> : null; return { status: value.status, code: value.code, message: value.message, data: data ? { message: data.message, status: data.status, auth_model: data.auth_model, transaction_reference: data.transaction_reference, payment_reference: data.payment_reference, reference: data.reference, currency: data.currency, amount: data.amount, amount_expected: data.amount_expected, amount_paid: data.amount_paid, mobile_money: data.mobile_money, errors: data.errors } : null }; })() : body;
+  const rawText = await res.text();
+  let body: unknown = null;
+  try {
+    body = rawText ? JSON.parse(rawText) : null;
+  } catch {
+    body = rawText ? { message: rawText.slice(0, 1000) } : null;
+  }
+  const safeBody = body && typeof body === "object"
+    ? (() => {
+        const value = body as Record<string, unknown>;
+        const data = value.data && typeof value.data === "object" ? value.data as Record<string, unknown> : null;
+        return {
+          status: value.status,
+          code: value.code,
+          message: value.message,
+          data: data ? {
+            message: data.message,
+            status: data.status,
+            auth_model: data.auth_model,
+            transaction_reference: data.transaction_reference,
+            payment_reference: data.payment_reference,
+            reference: data.reference,
+            currency: data.currency,
+            amount: data.amount,
+            amount_expected: data.amount_expected,
+            amount_paid: data.amount_paid,
+            mobile_money: data.mobile_money,
+            errors: data.errors,
+          } : null,
+        };
+      })()
+    : body;
   console.info("[korapay] response", { path, httpStatus: res.status, body: safeBody });
   return { res, body };
+}
+
+async function authorizeSandboxTestStk(reference: string) {
+  const { res, body } = await koraRequest("/charges/mobile-money/sandbox/authorize-stk", {
+    method: "POST",
+    body: JSON.stringify({ reference, pin: "1234" }),
+  });
+  const kora = (body as { data?: KoraData } | null)?.data;
+  if (!res.ok || !kora) throw new Error(readKoraMessage(body));
+  return kora;
 }
 
 async function rejectKorapayDeposit(depositId: string, reason: string) {
@@ -371,22 +414,66 @@ export const initiateKorapayMobileMoney = createServerFn({ method: "POST" })
       }
 
       if (String(kora.status).toLowerCase() === "success" && gatewayReference) {
+        const verified = await verifyKorapayReference(deposit.id, merchantReference, gatewayReference, amount);
         return {
           depositId: deposit.id,
           merchantReference,
           transactionReference: gatewayReference,
           authModel: "SUCCESS",
-          status: "success",
-          message: "Payment completed. Verifying your deposit.",
+          status: verified.status,
+          message: verified.reason ?? "Payment completed and verified.",
           mode: config.mode,
         };
+      }
+
+      const authModel = kora.auth_model ?? "STK_PROMPT";
+      if (config.mode === "test" && authModel === "STK_PROMPT" && isCameroonSandboxTestPhone(phone) && gatewayReference) {
+        const sandboxResult = await authorizeSandboxTestStk(gatewayReference);
+        const sandboxStatus = String(sandboxResult.status ?? "").toLowerCase();
+        const sandboxReference = sandboxResult.transaction_reference ?? gatewayReference;
+
+        if (sandboxStatus === "success") {
+          const verified = await verifyKorapayReference(deposit.id, merchantReference, sandboxReference, amount);
+          return {
+            depositId: deposit.id,
+            merchantReference,
+            transactionReference: sandboxReference,
+            authModel: "SUCCESS",
+            status: verified.status,
+            message: verified.reason ?? "Test Mobile Money payment verified successfully.",
+            mode: config.mode,
+          };
+        }
+
+        if (sandboxStatus === "failed") {
+          await supabaseAdmin
+            .from("deposits")
+            .update({
+              status: "rejected",
+              reviewed_at: new Date().toISOString(),
+              ocr_txn_id: sandboxReference,
+              auto_note: `Mobile Money test payment failed: ${sandboxResult.message ?? "Payment failed"}`,
+            })
+            .eq("id", deposit.id)
+            .eq("status", "pending");
+
+          return {
+            depositId: deposit.id,
+            merchantReference,
+            transactionReference: sandboxReference,
+            authModel: "STK_PROMPT",
+            status: "rejected",
+            message: sandboxResult.message ?? "Test Mobile Money payment failed.",
+            mode: config.mode,
+          };
+        }
       }
 
       return {
         depositId: deposit.id,
         merchantReference,
         transactionReference: gatewayReference,
-        authModel: kora.auth_model ?? "STK_PROMPT",
+        authModel,
         status: kora.status ?? "processing",
         message: kora.message ?? "Authorize the payment on your phone.",
         redirectUrl: kora.authorization?.redirect_url ?? null,
