@@ -337,6 +337,28 @@ export const initiateKorapayMobileMoney = createServerFn({ method: "POST" })
       }
 
       const gatewayReference = kora.transaction_reference ?? kora.payment_reference ?? kora.reference ?? "";
+      if (String(kora.status ?? "").toLowerCase() === "failed") {
+        await supabaseAdmin
+          .from("deposits")
+          .update({
+            status: "rejected",
+            reviewed_at: new Date().toISOString(),
+            ocr_txn_id: gatewayReference || null,
+            auto_note: `Mobile Money payment cancelled: ${kora.message ?? "Payment failed"}`,
+          })
+          .eq("id", deposit.id)
+          .eq("status", "pending");
+        return {
+          depositId: deposit.id,
+          merchantReference,
+          transactionReference: gatewayReference,
+          authModel: kora.auth_model ?? "STK_PROMPT",
+          status: "rejected",
+          message: kora.message ?? "Mobile Money payment failed.",
+          redirectUrl: kora.authorization?.redirect_url ?? null,
+          mode: config.mode,
+        };
+      }
       if (gatewayReference) {
         await supabaseAdmin
           .from("deposits")
@@ -389,6 +411,28 @@ export const initiateKorapayMobileMoney = createServerFn({ method: "POST" })
             authModel: "SUCCESS",
             status: "success",
             message: "Payment completed. Verifying your deposit.",
+            mode: config.mode,
+          };
+        }
+        if (String(lookupData.status).toLowerCase() === "failed") {
+          await supabaseAdmin
+            .from("deposits")
+            .update({
+              status: "rejected",
+              reviewed_at: new Date().toISOString(),
+              ocr_txn_id: gatewayReference,
+              auto_note: `Mobile Money payment cancelled: ${lookupData.message ?? "Payment failed"}`,
+            })
+            .eq("id", deposit.id)
+            .eq("status", "pending");
+          return {
+            depositId: deposit.id,
+            merchantReference,
+            transactionReference: gatewayReference,
+            authModel: lookupData.auth_model ?? "STK_PROMPT",
+            status: "rejected",
+            message: lookupData.message ?? "Mobile Money payment failed.",
+            redirectUrl: lookupData.authorization?.redirect_url ?? null,
             mode: config.mode,
           };
         }
