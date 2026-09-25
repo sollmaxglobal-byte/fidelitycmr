@@ -123,7 +123,12 @@ async function koraRequest(path: string, init: RequestInit) {
         };
       })()
     : body;
-  console.info("[korapay] response", { path, httpStatus: res.status, body: safeBody });
+  console.info("[korapay] response", {
+    path,
+    httpStatus: res.status,
+    body: safeBody,
+    contentType: res.headers.get("content-type"),
+  });
   return { res, body };
 }
 
@@ -428,44 +433,52 @@ export const initiateKorapayMobileMoney = createServerFn({ method: "POST" })
 
       const authModel = kora.auth_model ?? "STK_PROMPT";
       if (config.mode === "test" && authModel === "STK_PROMPT" && isCameroonSandboxTestPhone(phone) && gatewayReference) {
-        const sandboxResult = await authorizeSandboxTestStk(gatewayReference);
-        const sandboxStatus = String(sandboxResult.status ?? "").toLowerCase();
-        const sandboxReference = sandboxResult.transaction_reference ?? gatewayReference;
+        try {
+          const sandboxResult = await authorizeSandboxTestStk(gatewayReference);
+          const sandboxStatus = String(sandboxResult.status ?? "").toLowerCase();
+          const sandboxReference = sandboxResult.transaction_reference ?? gatewayReference;
 
-        if (sandboxStatus === "success") {
-          const verified = await verifyKorapayReference(deposit.id, merchantReference, sandboxReference, amount);
-          return {
-            depositId: deposit.id,
-            merchantReference,
-            transactionReference: sandboxReference,
-            authModel: "SUCCESS",
-            status: verified.status,
-            message: verified.reason ?? "Test Mobile Money payment verified successfully.",
-            mode: config.mode,
-          };
-        }
+          if (sandboxStatus === "success") {
+            const verified = await verifyKorapayReference(deposit.id, merchantReference, sandboxReference, amount);
+            return {
+              depositId: deposit.id,
+              merchantReference,
+              transactionReference: sandboxReference,
+              authModel: "SUCCESS",
+              status: verified.status,
+              message: verified.reason ?? "Test Mobile Money payment verified successfully.",
+              mode: config.mode,
+            };
+          }
 
-        if (sandboxStatus === "failed") {
-          await supabaseAdmin
-            .from("deposits")
-            .update({
+          if (sandboxStatus === "failed") {
+            await supabaseAdmin
+              .from("deposits")
+              .update({
+                status: "rejected",
+                reviewed_at: new Date().toISOString(),
+                ocr_txn_id: sandboxReference,
+                auto_note: `Mobile Money test payment failed: ${sandboxResult.message ?? "Payment failed"}`,
+              })
+              .eq("id", deposit.id)
+              .eq("status", "pending");
+
+            return {
+              depositId: deposit.id,
+              merchantReference,
+              transactionReference: sandboxReference,
+              authModel: "STK_PROMPT",
               status: "rejected",
-              reviewed_at: new Date().toISOString(),
-              ocr_txn_id: sandboxReference,
-              auto_note: `Mobile Money test payment failed: ${sandboxResult.message ?? "Payment failed"}`,
-            })
-            .eq("id", deposit.id)
-            .eq("status", "pending");
-
-          return {
-            depositId: deposit.id,
-            merchantReference,
-            transactionReference: sandboxReference,
-            authModel: "STK_PROMPT",
-            status: "rejected",
-            message: sandboxResult.message ?? "Test Mobile Money payment failed.",
-            mode: config.mode,
-          };
+              message: sandboxResult.message ?? "Test Mobile Money payment failed.",
+              mode: config.mode,
+            };
+          }
+        } catch (sandboxError) {
+          await rejectKorapayDeposit(
+            deposit.id,
+            `Mobile Money test authorization failed: ${(sandboxError as Error).message}`,
+          );
+          throw sandboxError;
         }
       }
 
