@@ -116,10 +116,11 @@ function AdminSettings() {
   async function save() {
     if (!s) return;
     const secret = s.mm_webhook_secret?.trim() ?? "";
-    const autoApprovalSafe = !s.auto_approve_enabled || secret.length >= 24;
-    if (s.auto_approve_enabled && !autoApprovalSafe) {
-      toast.warning("Mobile Money gateway settings will be saved, but automatic deposit approval was disabled because its SMS webhook secret is missing or too short.");
-    }
+    const generatedMmSecret =
+      secret.length >= 24
+        ? secret
+        : crypto.randomUUID().replace(/-/g, "") + crypto.randomUUID().replace(/-/g, "");
+    const autoApprovalSafe = !s.auto_approve_enabled || generatedMmSecret.length >= 24;
     if (s.site_url && !/^https:\/\//i.test(s.site_url)) {
       toast.error("Site URL must use HTTPS");
       return;
@@ -149,6 +150,7 @@ function AdminSettings() {
         announcement_link_label: s.announcement_link_label,
         announcement_version: (s.announcement_version ?? 1) + (reshow ? 1 : 0),
         auto_approve_enabled: autoApprovalSafe ? (s.auto_approve_enabled ?? true) : false,
+        mm_webhook_secret: autoApprovalSafe ? generatedMmSecret : secret || null,
         auto_approve_max_amount: s.auto_approve_max_amount,
         auto_withdraw_enabled: !!s.auto_withdraw_enabled,
         auto_withdraw_max_amount: s.auto_withdraw_max_amount,
