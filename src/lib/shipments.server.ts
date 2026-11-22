@@ -2,6 +2,7 @@ import { promises as fs } from "node:fs";
 import path from "node:path";
 import {
   seedShipments,
+  type Place,
   type Shipment,
   type ShipmentStatus,
   type TrackingEvent,
@@ -108,6 +109,73 @@ export async function addSubscriber(trackingNumber: string, email: string) {
         ? "Confirmation email sent. You will be notified on every update."
         : "You are subscribed. A confirmation email has been queued.",
   };
+}
+
+export async function createShipment(input: {
+  trackingNumber: string;
+  status: ShipmentStatus;
+  mode: string;
+  origin: Place;
+  destination: Place;
+  weightKg: number;
+  pieces: number;
+  dimensions: string;
+  expectedAt: string;
+  senderName: string;
+  senderPhone: string;
+  recipientName: string;
+  recipientPhone: string;
+  recipientEmail: string;
+  comment: string;
+}) {
+  const store = await load();
+  const exists = store.shipments.some(
+    (s) => normalise(s.trackingNumber) === normalise(input.trackingNumber),
+  );
+  if (exists) return { ok: false as const, message: "That tracking number already exists." };
+
+  const now = new Date().toISOString();
+  const shipment: Shipment = {
+    trackingNumber: input.trackingNumber,
+    status: input.status,
+    mode: input.mode,
+    weightKg: input.weightKg,
+    pieces: input.pieces,
+    dimensions: input.dimensions || "—",
+    shippedAt: now,
+    pickupAt: now,
+    expectedAt: input.expectedAt,
+    updatedAt: now,
+    origin: input.origin,
+    current: input.origin,
+    destination: input.destination,
+    sender: {
+      name: input.senderName || "—",
+      address: input.origin.label,
+      phone: input.senderPhone || "—",
+    },
+    recipient: {
+      name: input.recipientName || "—",
+      address: input.destination.label,
+      phone: input.recipientPhone || "—",
+      email: input.recipientEmail || undefined,
+    },
+    dutyFee: 0,
+    dutyPaid: false,
+    events: [
+      {
+        id: `${input.trackingNumber}-${Date.now()}`,
+        status: input.status,
+        location: input.origin.label,
+        comment: input.comment || "Shipment registered in the operations console.",
+        at: now,
+      },
+    ],
+  };
+
+  store.shipments.unshift(shipment);
+  await persist(store);
+  return { ok: true as const, shipment };
 }
 
 export async function addTrackingUpdate(input: {

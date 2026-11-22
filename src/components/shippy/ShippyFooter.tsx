@@ -130,7 +130,7 @@ export function ShippyFooter() {
             <a href="#" className="hover:text-blue-400">
               Shipping Policy
             </a>
-            <Link to="/adminlogin" className="hover:text-blue-400">
+            <Link to="/admin" className="hover:text-blue-400">
               Admin
             </Link>
           </div>

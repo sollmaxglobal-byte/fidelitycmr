@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { formatDate, formatXAF } from "@/lib/format";
 
-export const Route = createFileRoute("/admin/sms")({ component: AdminSms });
+export const Route = createFileRoute("/admin-panel/sms")({ component: AdminSms });
 
 type Sms = {
   id: string;

@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as AdminRouteImport } from './routes/admin'
+import { Route as AdminPanelRouteImport } from './routes/admin-panel'
 import { Route as AdminloginRouteImport } from './routes/adminlogin'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ContactRouteImport } from './routes/contact'
@@ -28,17 +29,17 @@ import { Route as ResetPinRouteImport } from './routes/reset-pin'
 import { Route as ServicesRouteImport } from './routes/services'
 import { Route as TrackOrderRouteImport } from './routes/track-order'
 import { Route as TrackingresultRouteImport } from './routes/trackingresult'
-import { Route as AdminIndexRouteImport } from './routes/admin.index'
-import { Route as AdminDepositsRouteImport } from './routes/admin.deposits'
-import { Route as AdminEmailsRouteImport } from './routes/admin.emails'
-import { Route as AdminInvestmentsRouteImport } from './routes/admin.investments'
-import { Route as AdminMethodsRouteImport } from './routes/admin.methods'
-import { Route as AdminPlansRouteImport } from './routes/admin.plans'
-import { Route as AdminPushRouteImport } from './routes/admin.push'
-import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
-import { Route as AdminSmsRouteImport } from './routes/admin.sms'
-import { Route as AdminUsersRouteImport } from './routes/admin.users'
-import { Route as AdminWithdrawalsRouteImport } from './routes/admin.withdrawals'
+import { Route as AdminPanelIndexRouteImport } from './routes/admin-panel.index'
+import { Route as AdminPanelDepositsRouteImport } from './routes/admin-panel.deposits'
+import { Route as AdminPanelEmailsRouteImport } from './routes/admin-panel.emails'
+import { Route as AdminPanelInvestmentsRouteImport } from './routes/admin-panel.investments'
+import { Route as AdminPanelMethodsRouteImport } from './routes/admin-panel.methods'
+import { Route as AdminPanelPlansRouteImport } from './routes/admin-panel.plans'
+import { Route as AdminPanelPushRouteImport } from './routes/admin-panel.push'
+import { Route as AdminPanelSettingsRouteImport } from './routes/admin-panel.settings'
+import { Route as AdminPanelSmsRouteImport } from './routes/admin-panel.sms'
+import { Route as AdminPanelUsersRouteImport } from './routes/admin-panel.users'
+import { Route as AdminPanelWithdrawalsRouteImport } from './routes/admin-panel.withdrawals'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
 import { Route as DashboardDepositRouteImport } from './routes/dashboard.deposit'
 import { Route as DashboardInvestRouteImport } from './routes/dashboard.invest'
@@ -69,6 +70,11 @@ const AboutRoute = AboutRouteImport.update({
 const AdminRoute = AdminRouteImport.update({
   id: '/admin',
   path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminPanelRoute = AdminPanelRouteImport.update({
+  id: '/admin-panel',
+  path: '/admin-panel',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminloginRoute = AdminloginRouteImport.update({
@@ -151,60 +157,60 @@ const TrackingresultRoute = TrackingresultRouteImport.update({
   path: '/trackingresult',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AdminIndexRoute = AdminIndexRouteImport.update({
+const AdminPanelIndexRoute = AdminPanelIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => AdminRoute,
+  getParentRoute: () => AdminPanelRoute,
 } as any)
-const AdminDepositsRoute = AdminDepositsRouteImport.update({
+const AdminPanelDepositsRoute = AdminPanelDepositsRouteImport.update({
   id: '/deposits',
   path: '/deposits',
-  getParentRoute: () => AdminRoute,
+  getParentRoute: () => AdminPanelRoute,
 } as any)
-const AdminEmailsRoute = AdminEmailsRouteImport.update({
+const AdminPanelEmailsRoute = AdminPanelEmailsRouteImport.update({
   id: '/emails',
   path: '/emails',
-  getParentRoute: () => AdminRoute,
+  getParentRoute: () => AdminPanelRoute,
 } as any)
-const AdminInvestmentsRoute = AdminInvestmentsRouteImport.update({
+const AdminPanelInvestmentsRoute = AdminPanelInvestmentsRouteImport.update({
   id: '/investments',
   path: '/investments',
-  getParentRoute: () => AdminRoute,
+  getParentRoute: () => AdminPanelRoute,
 } as any)
-const AdminMethodsRoute = AdminMethodsRouteImport.update({
+const AdminPanelMethodsRoute = AdminPanelMethodsRouteImport.update({
   id: '/methods',
   path: '/methods',
-  getParentRoute: () => AdminRoute,
+  getParentRoute: () => AdminPanelRoute,
 } as any)
-const AdminPlansRoute = AdminPlansRouteImport.update({
+const AdminPanelPlansRoute = AdminPanelPlansRouteImport.update({
   id: '/plans',
   path: '/plans',
-  getParentRoute: () => AdminRoute,
+  getParentRoute: () => AdminPanelRoute,
 } as any)
-const AdminPushRoute = AdminPushRouteImport.update({
+const AdminPanelPushRoute = AdminPanelPushRouteImport.update({
   id: '/push',
   path: '/push',
-  getParentRoute: () => AdminRoute,
+  getParentRoute: () => AdminPanelRoute,
 } as any)
-const AdminSettingsRoute = AdminSettingsRouteImport.update({
+const AdminPanelSettingsRoute = AdminPanelSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
-  getParentRoute: () => AdminRoute,
+  getParentRoute: () => AdminPanelRoute,
 } as any)
-const AdminSmsRoute = AdminSmsRouteImport.update({
+const AdminPanelSmsRoute = AdminPanelSmsRouteImport.update({
   id: '/sms',
   path: '/sms',
-  getParentRoute: () => AdminRoute,
+  getParentRoute: () => AdminPanelRoute,
 } as any)
-const AdminUsersRoute = AdminUsersRouteImport.update({
+const AdminPanelUsersRoute = AdminPanelUsersRouteImport.update({
   id: '/users',
   path: '/users',
-  getParentRoute: () => AdminRoute,
+  getParentRoute: () => AdminPanelRoute,
 } as any)
-const AdminWithdrawalsRoute = AdminWithdrawalsRouteImport.update({
+const AdminPanelWithdrawalsRoute = AdminPanelWithdrawalsRouteImport.update({
   id: '/withdrawals',
   path: '/withdrawals',
-  getParentRoute: () => AdminRoute,
+  getParentRoute: () => AdminPanelRoute,
 } as any)
 const DashboardIndexRoute = DashboardIndexRouteImport.update({
   id: '/',
@@ -291,7 +297,8 @@ const DashboardReceiptKindIdRoute = DashboardReceiptKindIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/admin': typeof AdminRouteWithChildren
+  '/admin': typeof AdminRoute
+  '/admin-panel': typeof AdminPanelRouteWithChildren
   '/adminlogin': typeof AdminloginRoute
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
@@ -308,16 +315,16 @@ export interface FileRoutesByFullPath {
   '/services': typeof ServicesRoute
   '/track-order': typeof TrackOrderRoute
   '/trackingresult': typeof TrackingresultRoute
-  '/admin/deposits': typeof AdminDepositsRoute
-  '/admin/emails': typeof AdminEmailsRoute
-  '/admin/investments': typeof AdminInvestmentsRoute
-  '/admin/methods': typeof AdminMethodsRoute
-  '/admin/plans': typeof AdminPlansRoute
-  '/admin/push': typeof AdminPushRoute
-  '/admin/settings': typeof AdminSettingsRoute
-  '/admin/sms': typeof AdminSmsRoute
-  '/admin/users': typeof AdminUsersRoute
-  '/admin/withdrawals': typeof AdminWithdrawalsRoute
+  '/admin-panel/deposits': typeof AdminPanelDepositsRoute
+  '/admin-panel/emails': typeof AdminPanelEmailsRoute
+  '/admin-panel/investments': typeof AdminPanelInvestmentsRoute
+  '/admin-panel/methods': typeof AdminPanelMethodsRoute
+  '/admin-panel/plans': typeof AdminPanelPlansRoute
+  '/admin-panel/push': typeof AdminPanelPushRoute
+  '/admin-panel/settings': typeof AdminPanelSettingsRoute
+  '/admin-panel/sms': typeof AdminPanelSmsRoute
+  '/admin-panel/users': typeof AdminPanelUsersRoute
+  '/admin-panel/withdrawals': typeof AdminPanelWithdrawalsRoute
   '/dashboard/deposit': typeof DashboardDepositRoute
   '/dashboard/invest': typeof DashboardInvestRoute
   '/dashboard/profile': typeof DashboardProfileRoute
@@ -325,7 +332,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/wallet': typeof DashboardWalletRoute
   '/dashboard/withdraw': typeof DashboardWithdrawRoute
   '/deposit-pending/$id': typeof DepositPendingIdRoute
-  '/admin/': typeof AdminIndexRoute
+  '/admin-panel/': typeof AdminPanelIndexRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/api/korapay/webhook': typeof ApiKorapayWebhookRoute
   '/api/public/mm-sms': typeof ApiPublicMmSmsRoute
@@ -339,6 +346,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/admin': typeof AdminRoute
   '/adminlogin': typeof AdminloginRoute
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
@@ -354,16 +362,16 @@ export interface FileRoutesByTo {
   '/services': typeof ServicesRoute
   '/track-order': typeof TrackOrderRoute
   '/trackingresult': typeof TrackingresultRoute
-  '/admin/deposits': typeof AdminDepositsRoute
-  '/admin/emails': typeof AdminEmailsRoute
-  '/admin/investments': typeof AdminInvestmentsRoute
-  '/admin/methods': typeof AdminMethodsRoute
-  '/admin/plans': typeof AdminPlansRoute
-  '/admin/push': typeof AdminPushRoute
-  '/admin/settings': typeof AdminSettingsRoute
-  '/admin/sms': typeof AdminSmsRoute
-  '/admin/users': typeof AdminUsersRoute
-  '/admin/withdrawals': typeof AdminWithdrawalsRoute
+  '/admin-panel/deposits': typeof AdminPanelDepositsRoute
+  '/admin-panel/emails': typeof AdminPanelEmailsRoute
+  '/admin-panel/investments': typeof AdminPanelInvestmentsRoute
+  '/admin-panel/methods': typeof AdminPanelMethodsRoute
+  '/admin-panel/plans': typeof AdminPanelPlansRoute
+  '/admin-panel/push': typeof AdminPanelPushRoute
+  '/admin-panel/settings': typeof AdminPanelSettingsRoute
+  '/admin-panel/sms': typeof AdminPanelSmsRoute
+  '/admin-panel/users': typeof AdminPanelUsersRoute
+  '/admin-panel/withdrawals': typeof AdminPanelWithdrawalsRoute
   '/dashboard/deposit': typeof DashboardDepositRoute
   '/dashboard/invest': typeof DashboardInvestRoute
   '/dashboard/profile': typeof DashboardProfileRoute
@@ -371,7 +379,7 @@ export interface FileRoutesByTo {
   '/dashboard/wallet': typeof DashboardWalletRoute
   '/dashboard/withdraw': typeof DashboardWithdrawRoute
   '/deposit-pending/$id': typeof DepositPendingIdRoute
-  '/admin': typeof AdminIndexRoute
+  '/admin-panel': typeof AdminPanelIndexRoute
   '/dashboard': typeof DashboardIndexRoute
   '/api/korapay/webhook': typeof ApiKorapayWebhookRoute
   '/api/public/mm-sms': typeof ApiPublicMmSmsRoute
@@ -386,7 +394,8 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/admin': typeof AdminRouteWithChildren
+  '/admin': typeof AdminRoute
+  '/admin-panel': typeof AdminPanelRouteWithChildren
   '/adminlogin': typeof AdminloginRoute
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
@@ -403,16 +412,16 @@ export interface FileRoutesById {
   '/services': typeof ServicesRoute
   '/track-order': typeof TrackOrderRoute
   '/trackingresult': typeof TrackingresultRoute
-  '/admin/deposits': typeof AdminDepositsRoute
-  '/admin/emails': typeof AdminEmailsRoute
-  '/admin/investments': typeof AdminInvestmentsRoute
-  '/admin/methods': typeof AdminMethodsRoute
-  '/admin/plans': typeof AdminPlansRoute
-  '/admin/push': typeof AdminPushRoute
-  '/admin/settings': typeof AdminSettingsRoute
-  '/admin/sms': typeof AdminSmsRoute
-  '/admin/users': typeof AdminUsersRoute
-  '/admin/withdrawals': typeof AdminWithdrawalsRoute
+  '/admin-panel/deposits': typeof AdminPanelDepositsRoute
+  '/admin-panel/emails': typeof AdminPanelEmailsRoute
+  '/admin-panel/investments': typeof AdminPanelInvestmentsRoute
+  '/admin-panel/methods': typeof AdminPanelMethodsRoute
+  '/admin-panel/plans': typeof AdminPanelPlansRoute
+  '/admin-panel/push': typeof AdminPanelPushRoute
+  '/admin-panel/settings': typeof AdminPanelSettingsRoute
+  '/admin-panel/sms': typeof AdminPanelSmsRoute
+  '/admin-panel/users': typeof AdminPanelUsersRoute
+  '/admin-panel/withdrawals': typeof AdminPanelWithdrawalsRoute
   '/dashboard/deposit': typeof DashboardDepositRoute
   '/dashboard/invest': typeof DashboardInvestRoute
   '/dashboard/profile': typeof DashboardProfileRoute
@@ -420,7 +429,7 @@ export interface FileRoutesById {
   '/dashboard/wallet': typeof DashboardWalletRoute
   '/dashboard/withdraw': typeof DashboardWithdrawRoute
   '/deposit-pending/$id': typeof DepositPendingIdRoute
-  '/admin/': typeof AdminIndexRoute
+  '/admin-panel/': typeof AdminPanelIndexRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/api/korapay/webhook': typeof ApiKorapayWebhookRoute
   '/api/public/mm-sms': typeof ApiPublicMmSmsRoute
@@ -437,6 +446,7 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/admin'
+    | '/admin-panel'
     | '/adminlogin'
     | '/auth'
     | '/contact'
@@ -453,16 +463,16 @@ export interface FileRouteTypes {
     | '/services'
     | '/track-order'
     | '/trackingresult'
-    | '/admin/deposits'
-    | '/admin/emails'
-    | '/admin/investments'
-    | '/admin/methods'
-    | '/admin/plans'
-    | '/admin/push'
-    | '/admin/settings'
-    | '/admin/sms'
-    | '/admin/users'
-    | '/admin/withdrawals'
+    | '/admin-panel/deposits'
+    | '/admin-panel/emails'
+    | '/admin-panel/investments'
+    | '/admin-panel/methods'
+    | '/admin-panel/plans'
+    | '/admin-panel/push'
+    | '/admin-panel/settings'
+    | '/admin-panel/sms'
+    | '/admin-panel/users'
+    | '/admin-panel/withdrawals'
     | '/dashboard/deposit'
     | '/dashboard/invest'
     | '/dashboard/profile'
@@ -470,7 +480,7 @@ export interface FileRouteTypes {
     | '/dashboard/wallet'
     | '/dashboard/withdraw'
     | '/deposit-pending/$id'
-    | '/admin/'
+    | '/admin-panel/'
     | '/dashboard/'
     | '/api/korapay/webhook'
     | '/api/public/mm-sms'
@@ -484,6 +494,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/about'
+    | '/admin'
     | '/adminlogin'
     | '/auth'
     | '/contact'
@@ -499,16 +510,16 @@ export interface FileRouteTypes {
     | '/services'
     | '/track-order'
     | '/trackingresult'
-    | '/admin/deposits'
-    | '/admin/emails'
-    | '/admin/investments'
-    | '/admin/methods'
-    | '/admin/plans'
-    | '/admin/push'
-    | '/admin/settings'
-    | '/admin/sms'
-    | '/admin/users'
-    | '/admin/withdrawals'
+    | '/admin-panel/deposits'
+    | '/admin-panel/emails'
+    | '/admin-panel/investments'
+    | '/admin-panel/methods'
+    | '/admin-panel/plans'
+    | '/admin-panel/push'
+    | '/admin-panel/settings'
+    | '/admin-panel/sms'
+    | '/admin-panel/users'
+    | '/admin-panel/withdrawals'
     | '/dashboard/deposit'
     | '/dashboard/invest'
     | '/dashboard/profile'
@@ -516,7 +527,7 @@ export interface FileRouteTypes {
     | '/dashboard/wallet'
     | '/dashboard/withdraw'
     | '/deposit-pending/$id'
-    | '/admin'
+    | '/admin-panel'
     | '/dashboard'
     | '/api/korapay/webhook'
     | '/api/public/mm-sms'
@@ -531,6 +542,7 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/admin'
+    | '/admin-panel'
     | '/adminlogin'
     | '/auth'
     | '/contact'
@@ -547,16 +559,16 @@ export interface FileRouteTypes {
     | '/services'
     | '/track-order'
     | '/trackingresult'
-    | '/admin/deposits'
-    | '/admin/emails'
-    | '/admin/investments'
-    | '/admin/methods'
-    | '/admin/plans'
-    | '/admin/push'
-    | '/admin/settings'
-    | '/admin/sms'
-    | '/admin/users'
-    | '/admin/withdrawals'
+    | '/admin-panel/deposits'
+    | '/admin-panel/emails'
+    | '/admin-panel/investments'
+    | '/admin-panel/methods'
+    | '/admin-panel/plans'
+    | '/admin-panel/push'
+    | '/admin-panel/settings'
+    | '/admin-panel/sms'
+    | '/admin-panel/users'
+    | '/admin-panel/withdrawals'
     | '/dashboard/deposit'
     | '/dashboard/invest'
     | '/dashboard/profile'
@@ -564,7 +576,7 @@ export interface FileRouteTypes {
     | '/dashboard/wallet'
     | '/dashboard/withdraw'
     | '/deposit-pending/$id'
-    | '/admin/'
+    | '/admin-panel/'
     | '/dashboard/'
     | '/api/korapay/webhook'
     | '/api/public/mm-sms'
@@ -579,7 +591,8 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
-  AdminRoute: typeof AdminRouteWithChildren
+  AdminRoute: typeof AdminRoute
+  AdminPanelRoute: typeof AdminPanelRouteWithChildren
   AdminloginRoute: typeof AdminloginRoute
   AuthRoute: typeof AuthRoute
   ContactRoute: typeof ContactRoute
@@ -627,6 +640,13 @@ declare module '@tanstack/react-router' {
       path: '/admin'
       fullPath: '/admin'
       preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin-panel': {
+      id: '/admin-panel'
+      path: '/admin-panel'
+      fullPath: '/admin-panel'
+      preLoaderRoute: typeof AdminPanelRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/adminlogin': {
@@ -741,82 +761,82 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TrackingresultRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/admin/': {
-      id: '/admin/'
+    '/admin-panel/': {
+      id: '/admin-panel/'
       path: '/'
-      fullPath: '/admin/'
-      preLoaderRoute: typeof AdminIndexRouteImport
-      parentRoute: typeof AdminRoute
+      fullPath: '/admin-panel/'
+      preLoaderRoute: typeof AdminPanelIndexRouteImport
+      parentRoute: typeof AdminPanelRoute
     }
-    '/admin/deposits': {
-      id: '/admin/deposits'
+    '/admin-panel/deposits': {
+      id: '/admin-panel/deposits'
       path: '/deposits'
-      fullPath: '/admin/deposits'
-      preLoaderRoute: typeof AdminDepositsRouteImport
-      parentRoute: typeof AdminRoute
+      fullPath: '/admin-panel/deposits'
+      preLoaderRoute: typeof AdminPanelDepositsRouteImport
+      parentRoute: typeof AdminPanelRoute
     }
-    '/admin/emails': {
-      id: '/admin/emails'
+    '/admin-panel/emails': {
+      id: '/admin-panel/emails'
       path: '/emails'
-      fullPath: '/admin/emails'
-      preLoaderRoute: typeof AdminEmailsRouteImport
-      parentRoute: typeof AdminRoute
+      fullPath: '/admin-panel/emails'
+      preLoaderRoute: typeof AdminPanelEmailsRouteImport
+      parentRoute: typeof AdminPanelRoute
     }
-    '/admin/investments': {
-      id: '/admin/investments'
+    '/admin-panel/investments': {
+      id: '/admin-panel/investments'
       path: '/investments'
-      fullPath: '/admin/investments'
-      preLoaderRoute: typeof AdminInvestmentsRouteImport
-      parentRoute: typeof AdminRoute
+      fullPath: '/admin-panel/investments'
+      preLoaderRoute: typeof AdminPanelInvestmentsRouteImport
+      parentRoute: typeof AdminPanelRoute
     }
-    '/admin/methods': {
-      id: '/admin/methods'
+    '/admin-panel/methods': {
+      id: '/admin-panel/methods'
       path: '/methods'
-      fullPath: '/admin/methods'
-      preLoaderRoute: typeof AdminMethodsRouteImport
-      parentRoute: typeof AdminRoute
+      fullPath: '/admin-panel/methods'
+      preLoaderRoute: typeof AdminPanelMethodsRouteImport
+      parentRoute: typeof AdminPanelRoute
     }
-    '/admin/plans': {
-      id: '/admin/plans'
+    '/admin-panel/plans': {
+      id: '/admin-panel/plans'
       path: '/plans'
-      fullPath: '/admin/plans'
-      preLoaderRoute: typeof AdminPlansRouteImport
-      parentRoute: typeof AdminRoute
+      fullPath: '/admin-panel/plans'
+      preLoaderRoute: typeof AdminPanelPlansRouteImport
+      parentRoute: typeof AdminPanelRoute
     }
-    '/admin/push': {
-      id: '/admin/push'
+    '/admin-panel/push': {
+      id: '/admin-panel/push'
       path: '/push'
-      fullPath: '/admin/push'
-      preLoaderRoute: typeof AdminPushRouteImport
-      parentRoute: typeof AdminRoute
+      fullPath: '/admin-panel/push'
+      preLoaderRoute: typeof AdminPanelPushRouteImport
+      parentRoute: typeof AdminPanelRoute
     }
-    '/admin/settings': {
-      id: '/admin/settings'
+    '/admin-panel/settings': {
+      id: '/admin-panel/settings'
       path: '/settings'
-      fullPath: '/admin/settings'
-      preLoaderRoute: typeof AdminSettingsRouteImport
-      parentRoute: typeof AdminRoute
+      fullPath: '/admin-panel/settings'
+      preLoaderRoute: typeof AdminPanelSettingsRouteImport
+      parentRoute: typeof AdminPanelRoute
     }
-    '/admin/sms': {
-      id: '/admin/sms'
+    '/admin-panel/sms': {
+      id: '/admin-panel/sms'
       path: '/sms'
-      fullPath: '/admin/sms'
-      preLoaderRoute: typeof AdminSmsRouteImport
-      parentRoute: typeof AdminRoute
+      fullPath: '/admin-panel/sms'
+      preLoaderRoute: typeof AdminPanelSmsRouteImport
+      parentRoute: typeof AdminPanelRoute
     }
-    '/admin/users': {
-      id: '/admin/users'
+    '/admin-panel/users': {
+      id: '/admin-panel/users'
       path: '/users'
-      fullPath: '/admin/users'
-      preLoaderRoute: typeof AdminUsersRouteImport
-      parentRoute: typeof AdminRoute
+      fullPath: '/admin-panel/users'
+      preLoaderRoute: typeof AdminPanelUsersRouteImport
+      parentRoute: typeof AdminPanelRoute
     }
-    '/admin/withdrawals': {
-      id: '/admin/withdrawals'
+    '/admin-panel/withdrawals': {
+      id: '/admin-panel/withdrawals'
       path: '/withdrawals'
-      fullPath: '/admin/withdrawals'
-      preLoaderRoute: typeof AdminWithdrawalsRouteImport
-      parentRoute: typeof AdminRoute
+      fullPath: '/admin-panel/withdrawals'
+      preLoaderRoute: typeof AdminPanelWithdrawalsRouteImport
+      parentRoute: typeof AdminPanelRoute
     }
     '/dashboard/': {
       id: '/dashboard/'
@@ -933,35 +953,37 @@ declare module '@tanstack/react-router' {
   }
 }
 
-interface AdminRouteChildren {
-  AdminDepositsRoute: typeof AdminDepositsRoute
-  AdminEmailsRoute: typeof AdminEmailsRoute
-  AdminInvestmentsRoute: typeof AdminInvestmentsRoute
-  AdminMethodsRoute: typeof AdminMethodsRoute
-  AdminPlansRoute: typeof AdminPlansRoute
-  AdminPushRoute: typeof AdminPushRoute
-  AdminSettingsRoute: typeof AdminSettingsRoute
-  AdminSmsRoute: typeof AdminSmsRoute
-  AdminUsersRoute: typeof AdminUsersRoute
-  AdminWithdrawalsRoute: typeof AdminWithdrawalsRoute
-  AdminIndexRoute: typeof AdminIndexRoute
+interface AdminPanelRouteChildren {
+  AdminPanelDepositsRoute: typeof AdminPanelDepositsRoute
+  AdminPanelEmailsRoute: typeof AdminPanelEmailsRoute
+  AdminPanelInvestmentsRoute: typeof AdminPanelInvestmentsRoute
+  AdminPanelMethodsRoute: typeof AdminPanelMethodsRoute
+  AdminPanelPlansRoute: typeof AdminPanelPlansRoute
+  AdminPanelPushRoute: typeof AdminPanelPushRoute
+  AdminPanelSettingsRoute: typeof AdminPanelSettingsRoute
+  AdminPanelSmsRoute: typeof AdminPanelSmsRoute
+  AdminPanelUsersRoute: typeof AdminPanelUsersRoute
+  AdminPanelWithdrawalsRoute: typeof AdminPanelWithdrawalsRoute
+  AdminPanelIndexRoute: typeof AdminPanelIndexRoute
 }
 
-const AdminRouteChildren: AdminRouteChildren = {
-  AdminDepositsRoute: AdminDepositsRoute,
-  AdminEmailsRoute: AdminEmailsRoute,
-  AdminInvestmentsRoute: AdminInvestmentsRoute,
-  AdminMethodsRoute: AdminMethodsRoute,
-  AdminPlansRoute: AdminPlansRoute,
-  AdminPushRoute: AdminPushRoute,
-  AdminSettingsRoute: AdminSettingsRoute,
-  AdminSmsRoute: AdminSmsRoute,
-  AdminUsersRoute: AdminUsersRoute,
-  AdminWithdrawalsRoute: AdminWithdrawalsRoute,
-  AdminIndexRoute: AdminIndexRoute,
+const AdminPanelRouteChildren: AdminPanelRouteChildren = {
+  AdminPanelDepositsRoute: AdminPanelDepositsRoute,
+  AdminPanelEmailsRoute: AdminPanelEmailsRoute,
+  AdminPanelInvestmentsRoute: AdminPanelInvestmentsRoute,
+  AdminPanelMethodsRoute: AdminPanelMethodsRoute,
+  AdminPanelPlansRoute: AdminPanelPlansRoute,
+  AdminPanelPushRoute: AdminPanelPushRoute,
+  AdminPanelSettingsRoute: AdminPanelSettingsRoute,
+  AdminPanelSmsRoute: AdminPanelSmsRoute,
+  AdminPanelUsersRoute: AdminPanelUsersRoute,
+  AdminPanelWithdrawalsRoute: AdminPanelWithdrawalsRoute,
+  AdminPanelIndexRoute: AdminPanelIndexRoute,
 }
 
-const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
+const AdminPanelRouteWithChildren = AdminPanelRoute._addFileChildren(
+  AdminPanelRouteChildren,
+)
 
 interface DashboardRouteChildren {
   DashboardDepositRoute: typeof DashboardDepositRoute
@@ -992,7 +1014,8 @@ const DashboardRouteWithChildren = DashboardRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
-  AdminRoute: AdminRouteWithChildren,
+  AdminRoute: AdminRoute,
+  AdminPanelRoute: AdminPanelRouteWithChildren,
   AdminloginRoute: AdminloginRoute,
   AuthRoute: AuthRoute,
   ContactRoute: ContactRoute,

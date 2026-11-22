@@ -2,7 +2,7 @@ import type { Shipment, TrackingEvent } from "@/data/shipments";
 
 export type MailResult = { status: "sent" | "queued" | "failed"; error?: string };
 
-const FROM = process.env.SHIPPY_EMAIL_FROM || "Shippy Express <onboarding@resend.dev>";
+const FALLBACK_FROM = "Shippy Express <onboarding@resend.dev>";
 
 /**
  * Delivers an email through Resend when RESEND_API_KEY is configured.
@@ -18,10 +18,12 @@ export async function deliverMail(opts: {
   if (!key) return { status: "queued" };
 
   try {
+    const { adminCredentials } = await import("@/lib/shippy-settings.server");
+    const from = (await adminCredentials()).emailFrom || FALLBACK_FROM;
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: { authorization: `Bearer ${key}`, "content-type": "application/json" },
-      body: JSON.stringify({ from: FROM, to: [opts.to], subject: opts.subject, html: opts.html }),
+      body: JSON.stringify({ from, to: [opts.to], subject: opts.subject, html: opts.html }),
     });
     if (!res.ok) {
       return { status: "failed", error: `Provider responded ${res.status}` };

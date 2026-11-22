@@ -85,6 +85,9 @@ const places = {
   },
 } satisfies Record<string, Place>;
 
+/** Logistics hubs the operations console can route a shipment through. */
+export const SHIPPY_HUBS: Place[] = Object.values(places);
+
 export const seedShipments: Shipment[] = [
   {
     trackingNumber: "REM-91076436",

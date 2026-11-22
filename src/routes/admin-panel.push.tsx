@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { sendPushBroadcast } from "@/lib/push.functions";
 import { formatDate } from "@/lib/format";
 
-export const Route = createFileRoute("/admin/push")({
+export const Route = createFileRoute("/admin-panel/push")({
   component: AdminPush,
 });
 

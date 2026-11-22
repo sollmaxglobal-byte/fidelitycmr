@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { ShippyHeader } from "./ShippyHeader";
 import { ShippyFooter } from "./ShippyFooter";
+import { ShippyChat } from "./ShippyChat";
 
 export function ShippyLayout({ children }: { children: ReactNode }) {
   return (
@@ -8,6 +9,7 @@ export function ShippyLayout({ children }: { children: ReactNode }) {
       <ShippyHeader />
       <main>{children}</main>
       <ShippyFooter />
+      <ShippyChat />
     </div>
   );
 }
