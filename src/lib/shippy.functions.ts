@@ -233,6 +233,7 @@ export const opsSaveSettings = createServerFn({ method: "POST" })
       adminEmail: string;
       emailFrom: string;
       contactEmail: string;
+      tawkEnabled: boolean;
       tawkPropertyId: string;
       tawkWidgetId: string;
       newPassword: string;
@@ -252,6 +253,7 @@ export const opsSaveSettings = createServerFn({ method: "POST" })
         adminEmail,
         emailFrom: text(data.emailFrom, 160),
         contactEmail,
+        tawkEnabled: data.tawkEnabled === true,
         tawkPropertyId: text(data.tawkPropertyId, 60),
         tawkWidgetId: text(data.tawkWidgetId, 60),
         newPassword,
@@ -265,6 +267,7 @@ export const opsSaveSettings = createServerFn({ method: "POST" })
       adminEmail: data.adminEmail,
       emailFrom: data.emailFrom,
       contactEmail: data.contactEmail,
+      tawkEnabled: data.tawkEnabled,
       tawkPropertyId: data.tawkPropertyId,
       tawkWidgetId: data.tawkWidgetId,
       ...(data.newPassword ? { adminPasswordHash: hashPassword(data.newPassword) } : {}),
@@ -276,6 +279,7 @@ export const getChatWidget = createServerFn({ method: "GET" }).handler(async () 
   const { readSettings } = await import("@/lib/shippy-settings.server");
   const settings = await readSettings();
   return {
+    enabled: settings.tawkEnabled !== false,
     propertyId: settings.tawkPropertyId.trim(),
     widgetId: settings.tawkWidgetId.trim() || "default",
   };

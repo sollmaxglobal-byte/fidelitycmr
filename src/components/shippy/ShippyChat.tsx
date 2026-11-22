@@ -12,17 +12,22 @@ export function ShippyChat() {
   useEffect(() => {
     let cancelled = false;
 
+    // Live chat belongs on the public site only, never inside the admin console.
+    if (window.location.pathname.startsWith("/admin")) return;
+
     (async () => {
+      let enabled = false;
       let propertyId = "";
       let widgetId = "default";
       try {
         const config = await getChatWidget();
+        enabled = config.enabled;
         propertyId = config.propertyId;
         widgetId = config.widgetId;
       } catch {
         return;
       }
-      if (cancelled || !propertyId) return;
+      if (cancelled || !enabled || !propertyId) return;
       if (document.getElementById("tawk-livechat-script")) return;
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
