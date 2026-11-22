@@ -1,6 +1,6 @@
-import { timingSafeEqual } from "node:crypto";
 import { createServerFn } from "@tanstack/react-start";
 import { SHIPMENT_STATUSES, SHIPPY_HUBS, type ShipmentStatus } from "@/data/shipments";
+import { assertOpsToken } from "@/lib/shippy-auth.server";
 
 const trackingNumber = (value: unknown) =>
   String(value ?? "")
@@ -9,17 +9,6 @@ const trackingNumber = (value: unknown) =>
     .slice(0, 40);
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
-
-async function assertOpsToken(token: unknown) {
-  const { opsToken } = await import("@/lib/shippy-settings.server");
-  const provided = String(token ?? "");
-  const expected = await opsToken();
-  const a = Buffer.from(provided);
-  const b = Buffer.from(expected);
-  if (a.length !== b.length || !timingSafeEqual(a, b)) {
-    throw new Error("Unauthorized");
-  }
-}
 
 export const getShipment = createServerFn({ method: "GET" })
   .inputValidator((data: { number: string }) => ({ number: trackingNumber(data.number) }))
@@ -99,14 +88,36 @@ export const opsLogin = createServerFn({ method: "POST" })
     password: String(data.password ?? "").slice(0, 120),
   }))
   .handler(async ({ data }) => {
-    const { adminCredentials, hashPassword, opsToken } = await import(
-      "@/lib/shippy-settings.server"
-    );
+    const { adminCredentials, hashPassword, opsToken, readSettings } =
+      await import("@/lib/shippy-settings.server");
     const creds = await adminCredentials();
-    if (data.email !== creds.email || hashPassword(data.password) !== creds.passwordHash) {
-      return { ok: false as const, message: "Incorrect email or password." };
+    const passwordHash = hashPassword(data.password);
+
+    if (data.email === creds.email && passwordHash === creds.passwordHash) {
+      return {
+        ok: true as const,
+        token: await opsToken(),
+        name: "Administrator",
+        email: creds.email,
+        role: "Super Admin",
+      };
     }
-    return { ok: true as const, token: await opsToken() };
+
+    const settings = await readSettings();
+    const manager = settings.managers.find(
+      (item) => item.email.toLowerCase() === data.email && item.status === "active",
+    );
+    if (manager && passwordHash === manager.passwordHash) {
+      return {
+        ok: true as const,
+        token: await opsToken(),
+        name: `${manager.firstName} ${manager.lastName}`.trim(),
+        email: manager.email,
+        role: manager.role,
+      };
+    }
+
+    return { ok: false as const, message: "Incorrect email or password." };
   });
 
 export const opsOverview = createServerFn({ method: "POST" })
@@ -226,55 +237,6 @@ export const opsSettings = createServerFn({ method: "POST" })
     return publicSettings();
   });
 
-export const opsSaveSettings = createServerFn({ method: "POST" })
-  .inputValidator(
-    (data: {
-      token: string;
-      adminEmail: string;
-      emailFrom: string;
-      contactEmail: string;
-      tawkEnabled: boolean;
-      tawkPropertyId: string;
-      tawkWidgetId: string;
-      newPassword: string;
-    }) => {
-      const adminEmail = text(data.adminEmail, 120).toLowerCase();
-      if (!EMAIL_RE.test(adminEmail)) throw new Error("Enter a valid admin email address.");
-      const contactEmail = text(data.contactEmail, 120).toLowerCase();
-      if (contactEmail && !EMAIL_RE.test(contactEmail)) {
-        throw new Error("Enter a valid contact email address.");
-      }
-      const newPassword = String(data.newPassword ?? "");
-      if (newPassword && newPassword.length < 6) {
-        throw new Error("The new password must be at least 6 characters.");
-      }
-      return {
-        token: text(data.token, 200),
-        adminEmail,
-        emailFrom: text(data.emailFrom, 160),
-        contactEmail,
-        tawkEnabled: data.tawkEnabled === true,
-        tawkPropertyId: text(data.tawkPropertyId, 60),
-        tawkWidgetId: text(data.tawkWidgetId, 60),
-        newPassword,
-      };
-    },
-  )
-  .handler(async ({ data }) => {
-    await assertOpsToken(data.token);
-    const { hashPassword, opsToken, saveSettings } = await import("@/lib/shippy-settings.server");
-    await saveSettings({
-      adminEmail: data.adminEmail,
-      emailFrom: data.emailFrom,
-      contactEmail: data.contactEmail,
-      tawkEnabled: data.tawkEnabled,
-      tawkPropertyId: data.tawkPropertyId,
-      tawkWidgetId: data.tawkWidgetId,
-      ...(data.newPassword ? { adminPasswordHash: hashPassword(data.newPassword) } : {}),
-    });
-    return { ok: true as const, token: await opsToken() };
-  });
-
 export const getChatWidget = createServerFn({ method: "GET" }).handler(async () => {
   const { readSettings } = await import("@/lib/shippy-settings.server");
   const settings = await readSettings();
@@ -282,5 +244,6 @@ export const getChatWidget = createServerFn({ method: "GET" }).handler(async () 
     enabled: settings.tawkEnabled !== false,
     propertyId: settings.tawkPropertyId.trim(),
     widgetId: settings.tawkWidgetId.trim() || "default",
+    tidioKey: settings.tidioPublicKey.trim(),
   };
 });

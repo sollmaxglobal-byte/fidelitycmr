@@ -6,11 +6,13 @@ import {
   Instagram,
   Linkedin,
   Mail,
+  MapPin,
   Phone,
   Truck,
   Twitter,
 } from "lucide-react";
 import { TrackForm } from "./TrackForm";
+import { useSiteBranding } from "./SiteBranding";
 
 const quickLinks = [
   { to: "/", label: "Home" },
@@ -24,17 +26,32 @@ const quickLinks = [
 const socials = [Facebook, Twitter, Linkedin, Instagram];
 
 export function ShippyFooter() {
+  const branding = useSiteBranding();
   return (
     <footer className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white">
       <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 gap-10 md:grid-cols-2 lg:grid-cols-4">
           <div className="lg:col-span-2">
             <div className="mb-5 flex items-center gap-2">
-              <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-600 text-white">
-                <Truck className="h-6 w-6" />
-              </span>
+              {branding.logoUrl ? (
+                <img
+                  src={branding.logoUrl}
+                  alt={branding.websiteName}
+                  className="h-11 w-auto max-w-[170px] rounded-lg bg-white object-contain p-1"
+                />
+              ) : (
+                <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-600 text-white">
+                  <Truck className="h-6 w-6" />
+                </span>
+              )}
               <span className="text-xl font-extrabold tracking-tight text-white">
-                Shippy<span className="text-blue-400">Express</span>
+                {branding.websiteName === "Shippy Express" ? (
+                  <>
+                    Shippy<span className="text-blue-400">Express</span>
+                  </>
+                ) : (
+                  branding.websiteName
+                )}
               </span>
             </div>
             <p className="mb-6 leading-relaxed text-slate-300">
@@ -83,10 +100,10 @@ export function ShippyFooter() {
                 <div>
                   <p className="text-sm text-slate-400">Email Us</p>
                   <a
-                    href="mailto:support@developerplug.com"
+                    href={`mailto:${branding.contactEmail}`}
                     className="text-sm hover:text-blue-400"
                   >
-                    support@developerplug.com
+                    {branding.contactEmail}
                   </a>
                 </div>
               </div>
@@ -96,9 +113,31 @@ export function ShippyFooter() {
                 </span>
                 <div>
                   <p className="text-sm text-slate-400">Call Us</p>
-                  <p className="text-sm">TOLL FREE Support</p>
+                  {branding.whatsappNumber ? (
+                    <a
+                      href={`https://wa.me/${branding.whatsappNumber.replace(/\D/g, "")}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-sm hover:text-blue-400"
+                    >
+                      {branding.whatsappNumber}
+                    </a>
+                  ) : (
+                    <p className="text-sm">TOLL FREE Support</p>
+                  )}
                 </div>
               </div>
+              {branding.officeAddress && (
+                <div className="flex items-start gap-3">
+                  <span className="mt-1 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-blue-600">
+                    <MapPin className="h-4 w-4 text-white" />
+                  </span>
+                  <div>
+                    <p className="text-sm text-slate-400">Office</p>
+                    <p className="text-sm">{branding.officeAddress}</p>
+                  </div>
+                </div>
+              )}
               <div className="flex items-start gap-3">
                 <span className="mt-1 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-blue-600">
                   <Clock className="h-4 w-4 text-white" />
@@ -119,7 +158,9 @@ export function ShippyFooter() {
 
       <div className="border-t border-slate-700">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 px-4 py-5 text-sm text-slate-400 sm:px-6 md:flex-row lg:px-8">
-          <p>Copyright © {new Date().getFullYear()} Shippy Express. All rights reserved.</p>
+          <p>
+            Copyright © {new Date().getFullYear()} {branding.websiteName}. All rights reserved.
+          </p>
           <div className="flex gap-6">
             <a href="#" className="hover:text-blue-400">
               Privacy Policy
