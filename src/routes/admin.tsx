@@ -1,195 +1,113 @@
-import { createFileRoute, Outlet, Link, useNavigate, useRouterState } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import {
-  LayoutDashboard,
-  ArrowDownToLine,
-  ArrowUpFromLine,
-  Users,
-  Settings,
-  Wallet,
-  ShieldCheck,
-  LogOut,
-  Menu,
-  Cog,
-  TrendingUp,
-  Mail,
-  BellRing,
-  MessageSquareText,
-} from "lucide-react";
-import { useAuth } from "@/hooks/useAuth";
-import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { useCallback, useEffect, useState } from "react";
+import { createFileRoute } from "@tanstack/react-router";
+import { LayoutDashboard, LogOut, PackagePlus, Settings2 } from "lucide-react";
+import { ShippyLayout } from "@/components/shippy/ShippyLayout";
+import { OpsLoginCard } from "@/components/shippy/ops/OpsLoginCard";
+import { OpsOverviewTab } from "@/components/shippy/ops/OpsOverviewTab";
+import { OpsNewShipmentTab } from "@/components/shippy/ops/OpsNewShipmentTab";
+import { OpsSettingsTab } from "@/components/shippy/ops/OpsSettingsTab";
 
 export const Route = createFileRoute("/admin")({
-  component: AdminLayout,
+  head: () => ({
+    meta: [
+      { title: "Admin Console — Shippy Express" },
+      { name: "robots", content: "noindex" },
+    ],
+  }),
+  component: AdminPage,
 });
 
-type NavItem = { to: string; label: string; icon: typeof LayoutDashboard; exact?: boolean };
-const NAV: NavItem[] = [
-  { to: "/admin", label: "Overview", icon: LayoutDashboard, exact: true },
-  { to: "/admin/deposits", label: "Deposits", icon: ArrowDownToLine },
-  { to: "/admin/sms", label: "Forwarded SMS", icon: MessageSquareText },
-  { to: "/admin/withdrawals", label: "Withdrawals", icon: ArrowUpFromLine },
-  { to: "/admin/investments", label: "Investments", icon: TrendingUp },
-  { to: "/admin/users", label: "Users", icon: Users },
-  { to: "/admin/plans", label: "Plans", icon: Wallet },
-  { to: "/admin/methods", label: "Payment methods", icon: Settings },
-  { to: "/admin/emails", label: "Email templates", icon: Mail },
-  { to: "/admin/push", label: "Push notifications", icon: BellRing },
-  { to: "/admin/settings", label: "Site settings", icon: Cog },
+const TOKEN_KEY = "shippy_ops_token";
+
+type Tab = "overview" | "tracking" | "settings";
+
+const TABS: { id: Tab; label: string; icon: typeof LayoutDashboard }[] = [
+  { id: "overview", label: "Overview", icon: LayoutDashboard },
+  { id: "tracking", label: "Add tracking", icon: PackagePlus },
+  { id: "settings", label: "Settings", icon: Settings2 },
 ];
 
-function AdminLayout() {
-  const { user, loading, isAdmin, signOut } = useAuth();
-  const nav = useNavigate();
-  const path = useRouterState({ select: (s) => s.location.pathname });
-  const [open, setOpen] = useState(false);
+function AdminPage() {
+  const [token, setToken] = useState<string | null>(null);
+  const [ready, setReady] = useState(false);
+  const [tab, setTab] = useState<Tab>("overview");
 
   useEffect(() => {
-    if (!loading && !user) nav({ to: "/login" });
-    else if (!loading && user && !isAdmin) nav({ to: "/dashboard" });
-  }, [user, loading, isAdmin, nav]);
+    setToken(localStorage.getItem(TOKEN_KEY));
+    setReady(true);
+  }, []);
 
-  if (loading || !user || !isAdmin) {
+  const signIn = useCallback((next: string) => {
+    localStorage.setItem(TOKEN_KEY, next);
+    setToken(next);
+  }, []);
+
+  const signOut = useCallback(() => {
+    localStorage.removeItem(TOKEN_KEY);
+    setToken(null);
+    setTab("overview");
+  }, []);
+
+  if (!ready) {
     return (
-      <div className="grid min-h-screen place-items-center text-muted-foreground">Loading…</div>
+      <ShippyLayout>
+        <p className="py-20 text-center text-sm text-slate-500">Loading…</p>
+      </ShippyLayout>
     );
   }
 
-  const isActive = (to: string, exact?: boolean) => (exact ? path === to : path.startsWith(to));
-  const current = NAV.find((n) => isActive(n.to, n.exact)) ?? NAV[0];
+  if (!token) {
+    return (
+      <ShippyLayout>
+        <OpsLoginCard onSignedIn={signIn} />
+      </ShippyLayout>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="sticky top-0 z-30 border-b border-border bg-sidebar text-sidebar-foreground">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-2 px-4">
-          <div className="flex items-center gap-2">
-            <Sheet open={open} onOpenChange={setOpen}>
-              <SheetTrigger asChild>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="text-sidebar-foreground hover:bg-white/10 md:hidden"
-                >
-                  <Menu className="h-5 w-5" />
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="left" className="w-72 p-0">
-                <SheetHeader className="border-b border-border bg-sidebar p-4 text-sidebar-foreground">
-                  <SheetTitle className="flex items-center gap-2 text-gold">
-                    <ShieldCheck className="h-5 w-5" /> Admin menu
-                  </SheetTitle>
-                </SheetHeader>
-                <nav className="flex flex-col gap-1 p-3">
-                  {NAV.map((item) => {
-                    const active = isActive(item.to, item.exact);
-                    return (
-                      <Link
-                        key={item.to}
-                        to={item.to as never}
-                        onClick={() => setOpen(false)}
-                        className={`flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium transition ${
-                          active
-                            ? "bg-primary text-primary-foreground"
-                            : "text-foreground/80 hover:bg-muted"
-                        }`}
-                      >
-                        <item.icon className="h-4 w-4" />
-                        {item.label}
-                      </Link>
-                    );
-                  })}
-                  <div className="my-2 h-px bg-border" />
-                  <button
-                    onClick={() => {
-                      setOpen(false);
-                      nav({ to: "/dashboard" });
-                    }}
-                    className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium text-foreground/80 hover:bg-muted"
-                  >
-                    <LayoutDashboard className="h-4 w-4" /> My account
-                  </button>
-                  <button
-                    onClick={async () => {
-                      setOpen(false);
-                      await signOut();
-                      nav({ to: "/" });
-                    }}
-                    className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium text-destructive hover:bg-destructive/10"
-                  >
-                    <LogOut className="h-4 w-4" /> Sign out
-                  </button>
-                </nav>
-              </SheetContent>
-            </Sheet>
-
-            <Link to="/" className="flex items-center gap-2">
-              <div className="flex h-9 w-9 items-center justify-center rounded-md bg-white/10 text-gold">
-                <ShieldCheck className="h-5 w-5" />
-              </div>
-              <div>
-                <div className="font-display text-xl text-gold leading-none">Fidelity</div>
-                <div className="text-[10px] uppercase tracking-wider opacity-70">Admin Console</div>
-              </div>
-            </Link>
+    <ShippyLayout>
+      <section className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-slate-900">Shipment Operations</h1>
+            <p className="mt-1 text-slate-600">
+              Add tracking, publish updates and manage the site settings.
+            </p>
           </div>
-
-          <div className="hidden items-center gap-2 md:flex">
-            <Button
-              size="sm"
-              variant="ghost"
-              className="text-sidebar-foreground hover:bg-white/10"
-              onClick={() => nav({ to: "/dashboard" })}
-            >
-              My account
-            </Button>
-            <Button
-              size="sm"
-              variant="ghost"
-              className="text-sidebar-foreground hover:bg-white/10"
-              onClick={async () => {
-                await signOut();
-                nav({ to: "/" });
-              }}
-            >
-              <LogOut className="h-4 w-4 md:mr-1" />
-              <span className="hidden md:inline">Sign out</span>
-            </Button>
-          </div>
-
-          <div className="rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-gold md:hidden">
-            {current.label}
-          </div>
+          <button
+            type="button"
+            onClick={signOut}
+            className="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+          >
+            <LogOut className="h-4 w-4" /> Sign out
+          </button>
         </div>
-      </header>
 
-      <div className="mx-auto flex max-w-7xl gap-6 px-4 py-6">
-        <aside className="hidden w-56 shrink-0 md:block">
-          <nav className="sticky top-20 flex flex-col gap-1">
-            {NAV.map((item) => {
-              const active = isActive(item.to, item.exact);
-              return (
-                <Link
-                  key={item.to}
-                  to={item.to as never}
-                  className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition ${
-                    active
-                      ? "bg-primary text-primary-foreground"
-                      : "text-foreground/70 hover:bg-muted"
-                  }`}
-                >
-                  <item.icon className="h-4 w-4" />
-                  {item.label}
-                </Link>
-              );
-            })}
-          </nav>
-        </aside>
+        <div className="mt-6 flex flex-wrap gap-2 border-b border-slate-200 pb-3">
+          {TABS.map(({ id, label, icon: Icon }) => (
+            <button
+              key={id}
+              type="button"
+              onClick={() => setTab(id)}
+              className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+                tab === id
+                  ? "bg-blue-600 text-white"
+                  : "border border-slate-300 text-slate-700 hover:bg-slate-50"
+              }`}
+            >
+              <Icon className="h-4 w-4" /> {label}
+            </button>
+          ))}
+        </div>
 
-        <main className="min-w-0 flex-1">
-          <Outlet />
-        </main>
-      </div>
-    </div>
+        <div className="mt-6">
+          {tab === "overview" && <OpsOverviewTab token={token} onExpired={signOut} />}
+          {tab === "tracking" && <OpsNewShipmentTab token={token} onExpired={signOut} />}
+          {tab === "settings" && (
+            <OpsSettingsTab token={token} onExpired={signOut} onToken={signIn} />
+          )}
+        </div>
+      </section>
+    </ShippyLayout>
   );
 }

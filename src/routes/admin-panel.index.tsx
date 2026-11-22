@@ -5,7 +5,7 @@ import { Users, ArrowDownToLine, ArrowUpFromLine, TrendingUp, Wallet, Clock } fr
 import { supabase } from "@/integrations/supabase/client";
 import { formatXAF } from "@/lib/format";
 
-export const Route = createFileRoute("/admin/")({
+export const Route = createFileRoute("/admin-panel/")({
   component: AdminOverview,
 });
 

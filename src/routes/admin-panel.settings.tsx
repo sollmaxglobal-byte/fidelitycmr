@@ -20,7 +20,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 
-export const Route = createFileRoute("/admin/settings")({
+export const Route = createFileRoute("/admin-panel/settings")({
   component: AdminSettings,
 });
 

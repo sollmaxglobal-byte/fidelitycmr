@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { formatXAF } from "@/lib/format";
 
-export const Route = createFileRoute("/admin/plans")({
+export const Route = createFileRoute("/admin-panel/plans")({
   component: AdminPlans,
 });
 

@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/hooks/useAuth";
 import { translateTemplateToFrench } from "@/lib/email-translate.functions";
 
-export const Route = createFileRoute("/admin/emails")({
+export const Route = createFileRoute("/admin-panel/emails")({
   component: AdminEmails,
 });
 

@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { formatXAF, formatDate } from "@/lib/format";
 
-export const Route = createFileRoute("/admin/investments")({
+export const Route = createFileRoute("/admin-panel/investments")({
   component: AdminInvestments,
 });
 

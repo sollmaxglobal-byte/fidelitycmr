@@ -10,12 +10,7 @@ import {
 import { AuthProvider } from "@/hooks/useAuth";
 import { ThemeProvider } from "@/hooks/useTheme";
 import { I18nProvider } from "@/hooks/useI18n";
-import { TidioLoader } from "@/components/TidioLoader";
-import { SendPulseLoader } from "@/components/SendPulseLoader";
-import { TawkLoader } from "@/components/TawkLoader";
 import { Toaster } from "@/components/ui/sonner";
-import { AppInstallPrompt } from "@/components/AppInstallPrompt";
-import { AnnouncementPopup } from "@/components/AnnouncementPopup";
 
 import appCss from "../styles.css?url";
 
@@ -81,23 +76,22 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Fidelity — Grow your capital with confidence" },
+      { title: "Shippy Express — Premium Global Shipping Solutions" },
       {
         name: "description",
         content:
-          "Fidelity is a professional investment platform in Cameroon. Earn daily returns in XAF with secure, transparent plans.",
+          "Shippy Express is a global logistics service provider offering premium shipping, courier, freight and real-time shipment tracking services worldwide.",
       },
-      { name: "author", content: "Fidelity" },
-      { property: "og:title", content: "Fidelity — Grow your capital with confidence" },
+      { name: "author", content: "Shippy Express" },
+      { property: "og:title", content: "Shippy Express — Premium Global Shipping Solutions" },
       {
         property: "og:description",
         content:
-          "Daily returns in XAF. Secure manual deposits via Mobile Money, bank transfer or crypto.",
+          "Premium shipping, courier and freight services with real-time tracking, live route maps and email updates.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:site", content: "@Lovable" },
-      { name: "theme-color", content: "#171a1b" },
+      { name: "theme-color", content: "#1d4ed8" },
     ],
     links: [
       {
@@ -110,9 +104,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         rel: "stylesheet",
         href: "https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap",
       },
-      { rel: "manifest", href: "/manifest.webmanifest" },
-      { rel: "icon", type: "image/png", href: "/favicon.png" },
-      { rel: "apple-touch-icon", href: "/fidelity-app-icon-192.png" },
+      { rel: "icon", type: "image/svg+xml", href: "/shippy/favicon.svg" },
+      { rel: "apple-touch-icon", href: "/shippy/favicon.svg" },
     ],
   }),
   shellComponent: RootShell,
@@ -145,11 +138,6 @@ function RootComponent() {
           <AuthProvider>
             <Outlet />
             <Toaster richColors position="top-right" />
-            <TawkLoader />
-            <TidioLoader />
-            <SendPulseLoader />
-            <AppInstallPrompt />
-            <AnnouncementPopup />
           </AuthProvider>
         </I18nProvider>
       </ThemeProvider>

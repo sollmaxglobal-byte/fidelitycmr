@@ -9,7 +9,7 @@ import { formatXAF, formatDate, txRef } from "@/lib/format";
 import { sendPushToUser } from "@/lib/push.functions";
 import { txNotification } from "@/lib/notification-templates";
 
-export const Route = createFileRoute("/admin/withdrawals")({
+export const Route = createFileRoute("/admin-panel/withdrawals")({
   component: AdminWithdrawals,
 });
 

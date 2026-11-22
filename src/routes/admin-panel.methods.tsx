@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 
-export const Route = createFileRoute("/admin/methods")({
+export const Route = createFileRoute("/admin-panel/methods")({
   component: AdminMethods,
 });
 
@@ -184,7 +184,7 @@ function AdminMethods() {
             <div className="font-display text-lg text-primary">Korapay Mobile Money</div>
             <p className="text-xs text-muted-foreground">MTN and Orange deposits are configured separately in Site settings.</p>
           </div>
-          <Button variant="outline" onClick={() => window.location.assign("/admin/settings")}>Configure Korapay</Button>
+          <Button variant="outline" onClick={() => window.location.assign("/admin-panel/settings")}>Configure Korapay</Button>
         </div>
       </div>
       <div className="space-y-3">

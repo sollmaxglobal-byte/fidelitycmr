@@ -12,7 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { formatXAF, formatDate, txRef } from "@/lib/format";
 
-export const Route = createFileRoute("/admin/deposits")({
+export const Route = createFileRoute("/admin-panel/deposits")({
   component: AdminDeposits,
 });
 

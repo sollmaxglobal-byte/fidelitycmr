@@ -1,7 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { adminRequestNotification } from "@/lib/notification-templates";
 
-const fallbackReviewUrl = "/admin/deposits";
+const fallbackReviewUrl = "/admin-panel/deposits";
 
 type RequestDetails = {
   id: string;
@@ -31,7 +31,7 @@ export async function notifyAdminOfRequest(
 
     const reviewUrl =
       typeof window !== "undefined"
-        ? `${window.location.origin}${type === "deposit" ? "/admin/deposits" : "/admin/withdrawals"}`
+        ? `${window.location.origin}${type === "deposit" ? "/admin-panel/deposits" : "/admin-panel/withdrawals"}`
         : fallbackReviewUrl;
     const template =
       type === "deposit"
