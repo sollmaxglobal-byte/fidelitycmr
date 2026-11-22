@@ -368,3 +368,62 @@ html.app-standalone [contenteditable="true"] {
   user-select: text;
   -webkit-user-select: text;
 }
+
+/* Shippy Express storefront */
+.shippy,
+.shippy h1,
+.shippy h2,
+.shippy h3,
+.shippy h4,
+.shippy h5,
+.shippy button,
+.shippy input,
+.shippy textarea,
+.shippy select {
+  font-family: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+.shippy h1,
+.shippy h2,
+.shippy h3 {
+  letter-spacing: -0.02em;
+}
+
+.shippy-map-pin {
+  background: transparent;
+  border: 0;
+}
+
+.shippy-live-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #34d399;
+  box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.7);
+  animation: shippy-pulse 1.8s infinite;
+}
+
+@keyframes shippy-pulse {
+  70% {
+    box-shadow: 0 0 0 8px rgba(52, 211, 153, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(52, 211, 153, 0);
+  }
+}
+
+@media print {
+  body * {
+    visibility: hidden !important;
+  }
+  .shipment-print,
+  .shipment-print * {
+    visibility: visible !important;
+  }
+  .shipment-print {
+    position: absolute !important;
+    inset: 0 auto auto 0;
+    width: 100%;
+  }
+}

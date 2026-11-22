@@ -12,17 +12,22 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as AdminRouteImport } from './routes/admin'
+import { Route as AdminloginRouteImport } from './routes/adminlogin'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as DepositPaymentRouteImport } from './routes/deposit-payment'
 import { Route as DepositProofRouteImport } from './routes/deposit-proof'
+import { Route as DiplomaticRouteImport } from './routes/diplomatic'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as PlansRouteImport } from './routes/plans'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as ResetPinRouteImport } from './routes/reset-pin'
+import { Route as ServicesRouteImport } from './routes/services'
+import { Route as TrackOrderRouteImport } from './routes/track-order'
+import { Route as TrackingresultRouteImport } from './routes/trackingresult'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AdminDepositsRouteImport } from './routes/admin.deposits'
 import { Route as AdminEmailsRouteImport } from './routes/admin.emails'
@@ -42,6 +47,7 @@ import { Route as DashboardReferralsRouteImport } from './routes/dashboard.refer
 import { Route as DashboardWalletRouteImport } from './routes/dashboard.wallet'
 import { Route as DashboardWithdrawRouteImport } from './routes/dashboard.withdraw'
 import { Route as DepositPendingIdRouteImport } from './routes/deposit-pending.$id'
+import { Route as ApiKorapayWebhookRouteImport } from './routes/api/korapay.webhook'
 import { Route as ApiPublicMmSmsRouteImport } from './routes/api/public/mm-sms'
 import { Route as ApiPublicProcessReceiptEmailsRouteImport } from './routes/api/public/process-receipt-emails'
 import { Route as ApiPublicWithdrawQueueRouteImport } from './routes/api/public/withdraw-queue'
@@ -63,6 +69,11 @@ const AboutRoute = AboutRouteImport.update({
 const AdminRoute = AdminRouteImport.update({
   id: '/admin',
   path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminloginRoute = AdminloginRouteImport.update({
+  id: '/adminlogin',
+  path: '/adminlogin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -88,6 +99,11 @@ const DepositPaymentRoute = DepositPaymentRouteImport.update({
 const DepositProofRoute = DepositProofRouteImport.update({
   id: '/deposit-proof',
   path: '/deposit-proof',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DiplomaticRoute = DiplomaticRouteImport.update({
+  id: '/diplomatic',
+  path: '/diplomatic',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
@@ -118,6 +134,21 @@ const ResetPasswordRoute = ResetPasswordRouteImport.update({
 const ResetPinRoute = ResetPinRouteImport.update({
   id: '/reset-pin',
   path: '/reset-pin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ServicesRoute = ServicesRouteImport.update({
+  id: '/services',
+  path: '/services',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TrackOrderRoute = TrackOrderRouteImport.update({
+  id: '/track-order',
+  path: '/track-order',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TrackingresultRoute = TrackingresultRouteImport.update({
+  id: '/trackingresult',
+  path: '/trackingresult',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
@@ -215,6 +246,11 @@ const DepositPendingIdRoute = DepositPendingIdRouteImport.update({
   path: '/deposit-pending/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiKorapayWebhookRoute = ApiKorapayWebhookRouteImport.update({
+  id: '/api/korapay/webhook',
+  path: '/api/korapay/webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicMmSmsRoute = ApiPublicMmSmsRouteImport.update({
   id: '/api/public/mm-sms',
   path: '/api/public/mm-sms',
@@ -256,17 +292,22 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/admin': typeof AdminRouteWithChildren
+  '/adminlogin': typeof AdminloginRoute
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRouteWithChildren
   '/deposit-payment': typeof DepositPaymentRoute
   '/deposit-proof': typeof DepositProofRoute
+  '/diplomatic': typeof DiplomaticRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/plans': typeof PlansRoute
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
   '/reset-pin': typeof ResetPinRoute
+  '/services': typeof ServicesRoute
+  '/track-order': typeof TrackOrderRoute
+  '/trackingresult': typeof TrackingresultRoute
   '/admin/deposits': typeof AdminDepositsRoute
   '/admin/emails': typeof AdminEmailsRoute
   '/admin/investments': typeof AdminInvestmentsRoute
@@ -286,6 +327,7 @@ export interface FileRoutesByFullPath {
   '/deposit-pending/$id': typeof DepositPendingIdRoute
   '/admin/': typeof AdminIndexRoute
   '/dashboard/': typeof DashboardIndexRoute
+  '/api/korapay/webhook': typeof ApiKorapayWebhookRoute
   '/api/public/mm-sms': typeof ApiPublicMmSmsRoute
   '/api/public/process-receipt-emails': typeof ApiPublicProcessReceiptEmailsRoute
   '/api/public/withdraw-queue': typeof ApiPublicWithdrawQueueRoute
@@ -297,16 +339,21 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/adminlogin': typeof AdminloginRoute
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
   '/deposit-payment': typeof DepositPaymentRoute
   '/deposit-proof': typeof DepositProofRoute
+  '/diplomatic': typeof DiplomaticRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/plans': typeof PlansRoute
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
   '/reset-pin': typeof ResetPinRoute
+  '/services': typeof ServicesRoute
+  '/track-order': typeof TrackOrderRoute
+  '/trackingresult': typeof TrackingresultRoute
   '/admin/deposits': typeof AdminDepositsRoute
   '/admin/emails': typeof AdminEmailsRoute
   '/admin/investments': typeof AdminInvestmentsRoute
@@ -326,6 +373,7 @@ export interface FileRoutesByTo {
   '/deposit-pending/$id': typeof DepositPendingIdRoute
   '/admin': typeof AdminIndexRoute
   '/dashboard': typeof DashboardIndexRoute
+  '/api/korapay/webhook': typeof ApiKorapayWebhookRoute
   '/api/public/mm-sms': typeof ApiPublicMmSmsRoute
   '/api/public/process-receipt-emails': typeof ApiPublicProcessReceiptEmailsRoute
   '/api/public/withdraw-queue': typeof ApiPublicWithdrawQueueRoute
@@ -339,17 +387,22 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/admin': typeof AdminRouteWithChildren
+  '/adminlogin': typeof AdminloginRoute
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRouteWithChildren
   '/deposit-payment': typeof DepositPaymentRoute
   '/deposit-proof': typeof DepositProofRoute
+  '/diplomatic': typeof DiplomaticRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/plans': typeof PlansRoute
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
   '/reset-pin': typeof ResetPinRoute
+  '/services': typeof ServicesRoute
+  '/track-order': typeof TrackOrderRoute
+  '/trackingresult': typeof TrackingresultRoute
   '/admin/deposits': typeof AdminDepositsRoute
   '/admin/emails': typeof AdminEmailsRoute
   '/admin/investments': typeof AdminInvestmentsRoute
@@ -369,6 +422,7 @@ export interface FileRoutesById {
   '/deposit-pending/$id': typeof DepositPendingIdRoute
   '/admin/': typeof AdminIndexRoute
   '/dashboard/': typeof DashboardIndexRoute
+  '/api/korapay/webhook': typeof ApiKorapayWebhookRoute
   '/api/public/mm-sms': typeof ApiPublicMmSmsRoute
   '/api/public/process-receipt-emails': typeof ApiPublicProcessReceiptEmailsRoute
   '/api/public/withdraw-queue': typeof ApiPublicWithdrawQueueRoute
@@ -383,17 +437,22 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/admin'
+    | '/adminlogin'
     | '/auth'
     | '/contact'
     | '/dashboard'
     | '/deposit-payment'
     | '/deposit-proof'
+    | '/diplomatic'
     | '/forgot-password'
     | '/login'
     | '/plans'
     | '/register'
     | '/reset-password'
     | '/reset-pin'
+    | '/services'
+    | '/track-order'
+    | '/trackingresult'
     | '/admin/deposits'
     | '/admin/emails'
     | '/admin/investments'
@@ -413,6 +472,7 @@ export interface FileRouteTypes {
     | '/deposit-pending/$id'
     | '/admin/'
     | '/dashboard/'
+    | '/api/korapay/webhook'
     | '/api/public/mm-sms'
     | '/api/public/process-receipt-emails'
     | '/api/public/withdraw-queue'
@@ -424,16 +484,21 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/about'
+    | '/adminlogin'
     | '/auth'
     | '/contact'
     | '/deposit-payment'
     | '/deposit-proof'
+    | '/diplomatic'
     | '/forgot-password'
     | '/login'
     | '/plans'
     | '/register'
     | '/reset-password'
     | '/reset-pin'
+    | '/services'
+    | '/track-order'
+    | '/trackingresult'
     | '/admin/deposits'
     | '/admin/emails'
     | '/admin/investments'
@@ -453,6 +518,7 @@ export interface FileRouteTypes {
     | '/deposit-pending/$id'
     | '/admin'
     | '/dashboard'
+    | '/api/korapay/webhook'
     | '/api/public/mm-sms'
     | '/api/public/process-receipt-emails'
     | '/api/public/withdraw-queue'
@@ -465,17 +531,22 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/admin'
+    | '/adminlogin'
     | '/auth'
     | '/contact'
     | '/dashboard'
     | '/deposit-payment'
     | '/deposit-proof'
+    | '/diplomatic'
     | '/forgot-password'
     | '/login'
     | '/plans'
     | '/register'
     | '/reset-password'
     | '/reset-pin'
+    | '/services'
+    | '/track-order'
+    | '/trackingresult'
     | '/admin/deposits'
     | '/admin/emails'
     | '/admin/investments'
@@ -495,6 +566,7 @@ export interface FileRouteTypes {
     | '/deposit-pending/$id'
     | '/admin/'
     | '/dashboard/'
+    | '/api/korapay/webhook'
     | '/api/public/mm-sms'
     | '/api/public/process-receipt-emails'
     | '/api/public/withdraw-queue'
@@ -508,18 +580,24 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
   AdminRoute: typeof AdminRouteWithChildren
+  AdminloginRoute: typeof AdminloginRoute
   AuthRoute: typeof AuthRoute
   ContactRoute: typeof ContactRoute
   DashboardRoute: typeof DashboardRouteWithChildren
   DepositPaymentRoute: typeof DepositPaymentRoute
   DepositProofRoute: typeof DepositProofRoute
+  DiplomaticRoute: typeof DiplomaticRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   LoginRoute: typeof LoginRoute
   PlansRoute: typeof PlansRoute
   RegisterRoute: typeof RegisterRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   ResetPinRoute: typeof ResetPinRoute
+  ServicesRoute: typeof ServicesRoute
+  TrackOrderRoute: typeof TrackOrderRoute
+  TrackingresultRoute: typeof TrackingresultRoute
   DepositPendingIdRoute: typeof DepositPendingIdRoute
+  ApiKorapayWebhookRoute: typeof ApiKorapayWebhookRoute
   ApiPublicMmSmsRoute: typeof ApiPublicMmSmsRoute
   ApiPublicProcessReceiptEmailsRoute: typeof ApiPublicProcessReceiptEmailsRoute
   ApiPublicWithdrawQueueRoute: typeof ApiPublicWithdrawQueueRoute
@@ -549,6 +627,13 @@ declare module '@tanstack/react-router' {
       path: '/admin'
       fullPath: '/admin'
       preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/adminlogin': {
+      id: '/adminlogin'
+      path: '/adminlogin'
+      fullPath: '/adminlogin'
+      preLoaderRoute: typeof AdminloginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -584,6 +669,13 @@ declare module '@tanstack/react-router' {
       path: '/deposit-proof'
       fullPath: '/deposit-proof'
       preLoaderRoute: typeof DepositProofRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/diplomatic': {
+      id: '/diplomatic'
+      path: '/diplomatic'
+      fullPath: '/diplomatic'
+      preLoaderRoute: typeof DiplomaticRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/forgot-password': {
@@ -626,6 +718,27 @@ declare module '@tanstack/react-router' {
       path: '/reset-pin'
       fullPath: '/reset-pin'
       preLoaderRoute: typeof ResetPinRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/services': {
+      id: '/services'
+      path: '/services'
+      fullPath: '/services'
+      preLoaderRoute: typeof ServicesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/track-order': {
+      id: '/track-order'
+      path: '/track-order'
+      fullPath: '/track-order'
+      preLoaderRoute: typeof TrackOrderRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/trackingresult': {
+      id: '/trackingresult'
+      path: '/trackingresult'
+      fullPath: '/trackingresult'
+      preLoaderRoute: typeof TrackingresultRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/': {
@@ -761,6 +874,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DepositPendingIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/korapay/webhook': {
+      id: '/api/korapay/webhook'
+      path: '/api/korapay/webhook'
+      fullPath: '/api/korapay/webhook'
+      preLoaderRoute: typeof ApiKorapayWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/mm-sms': {
       id: '/api/public/mm-sms'
       path: '/api/public/mm-sms'
@@ -873,18 +993,24 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
   AdminRoute: AdminRouteWithChildren,
+  AdminloginRoute: AdminloginRoute,
   AuthRoute: AuthRoute,
   ContactRoute: ContactRoute,
   DashboardRoute: DashboardRouteWithChildren,
   DepositPaymentRoute: DepositPaymentRoute,
   DepositProofRoute: DepositProofRoute,
+  DiplomaticRoute: DiplomaticRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   LoginRoute: LoginRoute,
   PlansRoute: PlansRoute,
   RegisterRoute: RegisterRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   ResetPinRoute: ResetPinRoute,
+  ServicesRoute: ServicesRoute,
+  TrackOrderRoute: TrackOrderRoute,
+  TrackingresultRoute: TrackingresultRoute,
   DepositPendingIdRoute: DepositPendingIdRoute,
+  ApiKorapayWebhookRoute: ApiKorapayWebhookRoute,
   ApiPublicMmSmsRoute: ApiPublicMmSmsRoute,
   ApiPublicProcessReceiptEmailsRoute: ApiPublicProcessReceiptEmailsRoute,
   ApiPublicWithdrawQueueRoute: ApiPublicWithdrawQueueRoute,
