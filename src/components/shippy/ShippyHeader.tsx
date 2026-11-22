@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
+import { useSiteBranding } from "./SiteBranding";
 import {
   ChevronDown,
   Clock,
@@ -28,6 +29,7 @@ const navLink =
   "px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:text-blue-600 border-b-2 border-transparent hover:border-blue-600";
 
 export function ShippyHeader() {
+  const branding = useSiteBranding();
   const [open, setOpen] = useState(false);
   const [servicesOpen, setServicesOpen] = useState(false);
 
@@ -48,10 +50,10 @@ export function ShippyHeader() {
           <div className="flex items-center gap-2">
             <Mail className="h-4 w-4 text-blue-200" />
             <a
-              href="mailto:support@developerplug.com"
+              href={`mailto:${branding.contactEmail}`}
               className="transition-colors hover:text-blue-200"
             >
-              support@developerplug.com
+              {branding.contactEmail}
             </a>
           </div>
         </div>
@@ -62,14 +64,28 @@ export function ShippyHeader() {
           <div className="flex h-20 items-center justify-between">
             <Link
               to="/"
-              aria-label="Shippy Express home"
+              aria-label={`${branding.websiteName} home`}
               className="flex flex-shrink-0 items-center gap-2"
             >
-              <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-600 text-white">
-                <Truck className="h-6 w-6" />
-              </span>
+              {branding.logoUrl ? (
+                <img
+                  src={branding.logoUrl}
+                  alt={branding.websiteName}
+                  className="h-11 w-auto max-w-[170px] object-contain"
+                />
+              ) : (
+                <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-600 text-white">
+                  <Truck className="h-6 w-6" />
+                </span>
+              )}
               <span className="text-xl font-extrabold tracking-tight text-slate-900">
-                Shippy<span className="text-blue-600">Express</span>
+                {branding.websiteName === "Shippy Express" ? (
+                  <>
+                    Shippy<span className="text-blue-600">Express</span>
+                  </>
+                ) : (
+                  branding.websiteName
+                )}
               </span>
             </Link>
 

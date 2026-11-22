@@ -5,15 +5,22 @@ import { opsLogin } from "@/lib/shippy.functions";
 const field =
   "w-full rounded-lg border border-slate-300 px-3.5 py-2.5 text-sm text-slate-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200";
 
-export function OpsLoginCard({ onSignedIn }: { onSignedIn: (token: string) => void }) {
+export type OpsSession = {
+  token: string;
+  name: string;
+  email: string;
+  role: string;
+};
+
+export function OpsLoginCard({ onSignedIn }: { onSignedIn: (session: OpsSession) => void }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   return (
-    <section className="mx-auto flex max-w-md flex-col justify-center px-4 py-20">
-      <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
+    <section className="mx-auto flex max-w-md flex-col justify-center px-4 py-12">
+      <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-xl">
         <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-blue-600 text-white">
           <ShieldCheck className="h-6 w-6" />
         </span>
@@ -33,7 +40,12 @@ export function OpsLoginCard({ onSignedIn }: { onSignedIn: (token: string) => vo
                 setError(result.message);
                 return;
               }
-              onSignedIn(result.token);
+              onSignedIn({
+                token: result.token,
+                name: result.name,
+                email: result.email,
+                role: result.role,
+              });
             } catch (err) {
               setError((err as Error).message || "Could not sign in.");
             } finally {

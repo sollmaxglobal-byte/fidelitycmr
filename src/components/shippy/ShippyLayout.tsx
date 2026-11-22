@@ -2,15 +2,18 @@ import type { ReactNode } from "react";
 import { ShippyHeader } from "./ShippyHeader";
 import { ShippyFooter } from "./ShippyFooter";
 import { ShippyChat } from "./ShippyChat";
+import { SiteBrandingProvider } from "./SiteBranding";
 
 export function ShippyLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="shippy min-h-screen bg-slate-50">
-      <ShippyHeader />
-      <main>{children}</main>
-      <ShippyFooter />
-      <ShippyChat />
-    </div>
+    <SiteBrandingProvider>
+      <div className="shippy min-h-screen bg-slate-50">
+        <ShippyHeader />
+        <main>{children}</main>
+        <ShippyFooter />
+        <ShippyChat />
+      </div>
+    </SiteBrandingProvider>
   );
 }
 
