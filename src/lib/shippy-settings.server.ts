@@ -14,6 +14,7 @@ export type ShippySettings = {
   adminPasswordHash: string;
   emailFrom: string;
   contactEmail: string;
+  tawkEnabled: boolean;
   tawkPropertyId: string;
   tawkWidgetId: string;
 };
@@ -36,6 +37,7 @@ function defaults(): ShippySettings {
     adminPasswordHash: hashPassword(DEFAULT_ADMIN_PASSWORD),
     emailFrom: "Shippy Express <onboarding@resend.dev>",
     contactEmail: "support@developerplug.com",
+    tawkEnabled: true,
     tawkPropertyId: "",
     tawkWidgetId: "",
   };
