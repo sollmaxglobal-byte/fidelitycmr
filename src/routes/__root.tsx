@@ -11,6 +11,7 @@ import { AuthProvider } from "@/hooks/useAuth";
 import { ThemeProvider } from "@/hooks/useTheme";
 import { I18nProvider } from "@/hooks/useI18n";
 import { Toaster } from "@/components/ui/sonner";
+import { SitePreloader } from "@/components/SitePreloader";
 
 import appCss from "../styles.css?url";
 
@@ -121,6 +122,7 @@ function RootShell({ children }: { children: React.ReactNode }) {
         <HeadContent />
       </head>
       <body>
+        <SitePreloader />
         {children}
         <Scripts />
       </body>

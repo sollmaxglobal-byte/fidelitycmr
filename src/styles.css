@@ -413,6 +413,117 @@ html.app-standalone [contenteditable="true"] {
   }
 }
 
+/* Site-wide first-load preloader (SSR markup, fades out once ready) */
+#site-preloader {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: grid;
+  place-items: center;
+  background: #0f1113;
+  color: #f2f2f2;
+  opacity: 1;
+  visibility: visible;
+  transition:
+    opacity 480ms ease,
+    visibility 0s linear 0s;
+  /* Failsafe: hide even if JavaScript never hydrates. */
+  animation: site-preloader-failsafe 400ms ease 7s forwards;
+}
+
+.site-preloader-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.15rem;
+  padding: 2rem;
+}
+
+.site-preloader-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.site-preloader-mark {
+  animation: site-preloader-pulse 1.6s ease-in-out infinite;
+}
+
+.site-preloader-word {
+  display: flex;
+  flex-direction: column;
+  line-height: 1;
+}
+
+.site-preloader-name {
+  font-size: 1.35rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #ffffff;
+}
+
+.site-preloader-sub {
+  margin-top: 0.4rem;
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.42em;
+  text-transform: uppercase;
+  color: #2ecc71;
+}
+
+.site-preloader-track {
+  width: min(220px, 55vw);
+  height: 2px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(242, 242, 242, 0.16);
+}
+
+.site-preloader-bar {
+  display: block;
+  height: 100%;
+  width: 40%;
+  border-radius: inherit;
+  background: #2ecc71;
+  animation: site-preloader-slide 1.15s ease-in-out infinite;
+}
+
+@keyframes site-preloader-slide {
+  0% {
+    transform: translateX(-120%);
+  }
+  100% {
+    transform: translateX(320%);
+  }
+}
+
+@keyframes site-preloader-pulse {
+  50% {
+    opacity: 0.45;
+  }
+}
+
+@keyframes site-preloader-failsafe {
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #site-preloader {
+    transition-duration: 1ms;
+  }
+  .site-preloader-mark,
+  .site-preloader-bar {
+    animation: none;
+  }
+  .site-preloader-bar {
+    width: 100%;
+  }
+}
+
 @media print {
   body * {
     visibility: hidden !important;
