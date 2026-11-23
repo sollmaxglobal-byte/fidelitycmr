@@ -127,7 +127,7 @@ export function OpsSettingsTab({
             <input
               value={form.emailFrom}
               onChange={(event) => set("emailFrom", event.target.value)}
-              placeholder="Shippy Express <updates@yourdomain.com>"
+              placeholder="Navora Logistics <updates@yourdomain.com>"
               className={`${field} mt-1`}
             />
           </label>

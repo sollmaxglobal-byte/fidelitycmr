@@ -7,10 +7,10 @@ import {
   Linkedin,
   Mail,
   Phone,
-  Truck,
   Twitter,
 } from "lucide-react";
 import { TrackForm } from "./TrackForm";
+import { NavoraLogo } from "./NavoraLogo";
 
 const quickLinks = [
   { to: "/", label: "Home" },
@@ -29,14 +29,7 @@ export function ShippyFooter() {
       <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 gap-10 md:grid-cols-2 lg:grid-cols-4">
           <div className="lg:col-span-2">
-            <div className="mb-5 flex items-center gap-2">
-              <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-600 text-white">
-                <Truck className="h-6 w-6" />
-              </span>
-              <span className="text-xl font-extrabold tracking-tight text-white">
-                Shippy<span className="text-blue-400">Express</span>
-              </span>
-            </div>
+            <NavoraLogo variant="light" link className="mb-5" />
             <p className="mb-6 leading-relaxed text-slate-300">
               Providing Smart Logistics Solutions Across The World. We deliver excellence in
               shipping, courier services, and package tracking with our global network of trusted
@@ -119,7 +112,7 @@ export function ShippyFooter() {
 
       <div className="border-t border-slate-700">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 px-4 py-5 text-sm text-slate-400 sm:px-6 md:flex-row lg:px-8">
-          <p>Copyright © {new Date().getFullYear()} Shippy Express. All rights reserved.</p>
+          <p>Copyright © {new Date().getFullYear()} Navora Logistics. All rights reserved.</p>
           <div className="flex gap-6">
             <a href="#" className="hover:text-blue-400">
               Privacy Policy

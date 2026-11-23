@@ -76,14 +76,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Shippy Express — Premium Global Shipping Solutions" },
+      { title: "Navora Logistics — Premium Global Shipping Solutions" },
       {
         name: "description",
         content:
-          "Shippy Express is a global logistics service provider offering premium shipping, courier, freight and real-time shipment tracking services worldwide.",
+          "Navora Logistics is a global logistics service provider offering premium shipping, courier, freight and real-time shipment tracking services worldwide.",
       },
-      { name: "author", content: "Shippy Express" },
-      { property: "og:title", content: "Shippy Express — Premium Global Shipping Solutions" },
+      { name: "author", content: "Navora Logistics" },
+      { property: "og:title", content: "Navora Logistics — Premium Global Shipping Solutions" },
       {
         property: "og:description",
         content:
@@ -91,7 +91,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { name: "theme-color", content: "#1d4ed8" },
+      { name: "theme-color", content: "#0F1113" },
     ],
     links: [
       {

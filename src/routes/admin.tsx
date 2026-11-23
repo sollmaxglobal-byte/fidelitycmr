@@ -10,7 +10,7 @@ import { OpsSettingsTab } from "@/components/shippy/ops/OpsSettingsTab";
 export const Route = createFileRoute("/admin")({
   head: () => ({
     meta: [
-      { title: "Admin Console — Shippy Express" },
+      { title: "Admin Console — Navora Logistics" },
       { name: "robots", content: "noindex" },
     ],
   }),

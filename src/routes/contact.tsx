@@ -18,11 +18,11 @@ import { submitContactMessage } from "@/lib/shippy.functions";
 export const Route = createFileRoute("/contact")({
   head: () => ({
     meta: [
-      { title: "Contact Us — Shippy Express" },
+      { title: "Contact Us — Navora Logistics" },
       {
         name: "description",
         content:
-          "Contact the Shippy Express team for shipping quotes, tracking help and logistics support.",
+          "Contact the Navora Logistics team for shipping quotes, tracking help and logistics support.",
       },
     ],
   }),
@@ -120,7 +120,7 @@ function ContactPage() {
               {
                 icon: MapPin,
                 title: "Our Headquarters",
-                text: "Shippy Express — San Diego, California",
+                text: "Navora Logistics — San Diego, California",
               },
               {
                 icon: Plane,

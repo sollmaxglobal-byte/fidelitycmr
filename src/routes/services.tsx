@@ -14,11 +14,11 @@ import { ShippyLayout, PageHero } from "@/components/shippy/ShippyLayout";
 export const Route = createFileRoute("/services")({
   head: () => ({
     meta: [
-      { title: "Our Services — Shippy Express" },
+      { title: "Our Services — Navora Logistics" },
       {
         name: "description",
         content:
-          "Air freight, ocean freight, road transportation, warehousing, packaging and diplomatic logistics from Shippy Express.",
+          "Air freight, ocean freight, road transportation, warehousing, packaging and diplomatic logistics from Navora Logistics.",
       },
     ],
   }),
@@ -29,7 +29,7 @@ const services = [
   {
     icon: Plane,
     title: "Air Freight",
-    text: "Shippy Express, as an IATA-endorsed air forwarder, offers its customers professional and reliable global, air-freight solutions.",
+    text: "Navora Logistics, as an IATA-endorsed air forwarder, offers its customers professional and reliable global, air-freight solutions.",
     bullets: ["Express Delivery", "Global Coverage", "Priority Shipping"],
   },
   {
@@ -41,7 +41,7 @@ const services = [
   {
     icon: Truck,
     title: "Road Transportation",
-    text: "Highly experienced and dependable, Shippy Express is a trusted partner in domestic road transportation, offering expert logistics solutions.",
+    text: "Highly experienced and dependable, Navora Logistics is a trusted partner in domestic road transportation, offering expert logistics solutions.",
     bullets: ["Same-Day Delivery", "Last Mile", "Regional Coverage"],
   },
   {
@@ -154,7 +154,7 @@ function ServicesPage() {
           </div>
           <img
             src="/shippy/service-right-1.jpg"
-            alt="Shippy Express global logistics network"
+            alt="Navora Logistics global logistics network"
             className="h-full max-h-[460px] w-full rounded-2xl object-cover shadow-lg"
           />
         </div>
