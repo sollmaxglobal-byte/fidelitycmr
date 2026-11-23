@@ -45,8 +45,14 @@ async function load(): Promise<Store> {
 
 async function persist(store: Store) {
   cache = store;
-  await fs.mkdir(DATA_DIR, { recursive: true });
-  await fs.writeFile(STORE_FILE, JSON.stringify(store, null, 2), "utf8");
+  try {
+    await fs.mkdir(DATA_DIR, { recursive: true });
+    await fs.writeFile(STORE_FILE, JSON.stringify(store, null, 2), "utf8");
+  } catch (error) {
+    // Serverless hosts (e.g. Vercel) ship a read-only filesystem. Keep the
+    // values in memory for this instance instead of failing the request.
+    console.warn("[shipments] could not persist store:", error);
+  }
 }
 
 function normalise(value: string) {

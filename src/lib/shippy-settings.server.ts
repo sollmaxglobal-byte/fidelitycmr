@@ -47,8 +47,14 @@ let cache: ShippySettings | null = null;
 
 async function persist(store: ShippySettings) {
   cache = store;
-  await fs.mkdir(DATA_DIR, { recursive: true });
-  await fs.writeFile(FILE, JSON.stringify(store, null, 2), "utf8");
+  try {
+    await fs.mkdir(DATA_DIR, { recursive: true });
+    await fs.writeFile(FILE, JSON.stringify(store, null, 2), "utf8");
+  } catch (error) {
+    // Serverless hosts (e.g. Vercel) ship a read-only filesystem. Keep the
+    // values in memory for this instance instead of failing the request.
+    console.warn("[shippy-settings] could not persist settings:", error);
+  }
 }
 
 export async function readSettings(): Promise<ShippySettings> {
