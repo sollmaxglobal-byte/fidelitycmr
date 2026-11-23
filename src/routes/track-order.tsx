@@ -6,10 +6,10 @@ import { TrackForm } from "@/components/shippy/TrackForm";
 export const Route = createFileRoute("/track-order")({
   head: () => ({
     meta: [
-      { title: "Track Shipment — Shippy Express" },
+      { title: "Track Shipment — Navora Logistics" },
       {
         name: "description",
-        content: "Track your Shippy Express shipment in real time with your tracking number.",
+        content: "Track your Navora Logistics shipment in real time with your tracking number.",
       },
     ],
   }),
@@ -70,7 +70,7 @@ function TrackOrderPage() {
             <p className="mt-2 text-sm text-slate-600">
               Here's the fastest way to check the status of your shipment. No need to call Customer
               Service – our online results give you real-time, detailed progress as your shipment
-              speeds through the Shippy Express network.
+              speeds through the Navora Logistics network.
             </p>
             <div className="mt-6">
               <label className="mb-2 block text-sm font-medium text-slate-700">

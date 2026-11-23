@@ -3,7 +3,7 @@ import { promises as fs } from "node:fs";
 import path from "node:path";
 
 /**
- * Editable operations settings for the Shippy Express site.
+ * Editable operations settings for the Navora Logistics site.
  *
  * Values live in .data/settings.json so the admin console can change them
  * without a redeploy. Environment variables (when provided) always win, so a
@@ -35,7 +35,7 @@ function defaults(): ShippySettings {
   return {
     adminEmail: DEFAULT_ADMIN_EMAIL,
     adminPasswordHash: hashPassword(DEFAULT_ADMIN_PASSWORD),
-    emailFrom: "Shippy Express <onboarding@resend.dev>",
+    emailFrom: "Navora Logistics <onboarding@resend.dev>",
     contactEmail: "support@developerplug.com",
     tawkEnabled: true,
     tawkPropertyId: "",

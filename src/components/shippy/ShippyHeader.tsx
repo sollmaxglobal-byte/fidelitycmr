@@ -14,6 +14,7 @@ import {
   Warehouse,
   X,
 } from "lucide-react";
+import { NavoraLogo } from "./NavoraLogo";
 
 const serviceLinks = [
   { to: "/services", label: "Sea/Ocean Freight", icon: Ship },
@@ -60,18 +61,7 @@ export function ShippyHeader() {
       <nav className="border-b border-slate-200 bg-white">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-20 items-center justify-between">
-            <Link
-              to="/"
-              aria-label="Shippy Express home"
-              className="flex flex-shrink-0 items-center gap-2"
-            >
-              <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-600 text-white">
-                <Truck className="h-6 w-6" />
-              </span>
-              <span className="text-xl font-extrabold tracking-tight text-slate-900">
-                Shippy<span className="text-blue-600">Express</span>
-              </span>
-            </Link>
+            <NavoraLogo link className="flex-shrink-0" />
 
             <div className="hidden items-center gap-6 lg:flex">
               <Link

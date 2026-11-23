@@ -5,11 +5,11 @@ import { ShippyLayout, PageHero } from "@/components/shippy/ShippyLayout";
 export const Route = createFileRoute("/about")({
   head: () => ({
     meta: [
-      { title: "About Us — Shippy Express" },
+      { title: "About Us — Navora Logistics" },
       {
         name: "description",
         content:
-          "Shippy Express is a privately owned, premier international freight forwarder, delivery and logistics service provider.",
+          "Navora Logistics is a privately owned, premier international freight forwarder, delivery and logistics service provider.",
       },
     ],
   }),
@@ -37,21 +37,21 @@ const achievements = [
 const testimonials = [
   {
     quote:
-      "Given my past experiences with other logistics companies, I can say without exception that the services provided by Shippy Express greatly exceed industry standards.",
+      "Given my past experiences with other logistics companies, I can say without exception that the services provided by Navora Logistics greatly exceed industry standards.",
     initials: "MP",
     name: "Monique Pete",
     role: "Logistics Manager, Martrax Inc.",
   },
   {
     quote:
-      "More than once, Shippy Express has 'saved the day', delivering our cargo on time with short notice. They have won my gratitude and loyalty with their 'can do' approach.",
+      "More than once, Navora Logistics has 'saved the day', delivering our cargo on time with short notice. They have won my gratitude and loyalty with their 'can do' approach.",
     initials: "SA",
     name: "Steve Anderson",
     role: "President/Owner, Duplication Factory",
   },
   {
     quote:
-      "I am very pleased with the service provided by Shippy Express. They find good carriers and use them regularly so we get a high level of service. Their communication is outstanding.",
+      "I am very pleased with the service provided by Navora Logistics. They find good carriers and use them regularly so we get a high level of service. Their communication is outstanding.",
     initials: "CB",
     name: "Cathy Beckman",
     role: "Logistics Team, Oxea Chemicals",
@@ -75,19 +75,19 @@ function AboutPage() {
               Company Profile
             </p>
             <h2 className="mt-3 text-3xl font-bold text-slate-900 md:text-4xl">
-              Shippy Express is a privately owned, premier international freight forwarder, delivery
+              Navora Logistics is a privately owned, premier international freight forwarder, delivery
               and logistics service provider.
             </h2>
             <div className="mt-6 space-y-4 leading-relaxed text-slate-600">
               <p>
-                Shippy Express has extensive experience handling and delivering sensitive domestic
+                Navora Logistics has extensive experience handling and delivering sensitive domestic
                 and industrial products including consumer technology products like networking
                 equipment, desktop and mobile computers, servers, cell phones and more.
               </p>
               <p>
-                Shippy Express delivers real-time, actionable information reliably and ensures
+                Navora Logistics delivers real-time, actionable information reliably and ensures
                 optimal efficiency and on-time activities by utilizing advanced, custom software
-                systems. Fully EDI capable, Shippy Express's systems interface with your trading
+                systems. Fully EDI capable, Navora Logistics's systems interface with your trading
                 partners to provide unprecedented product visibility throughout the entire supply
                 chain.
               </p>
@@ -115,7 +115,7 @@ function AboutPage() {
           </div>
           <img
             src="/shippy/company-slide-1.jpg"
-            alt="Shippy Express operations"
+            alt="Navora Logistics operations"
             className="h-64 w-full rounded-2xl object-cover shadow-lg lg:h-full"
           />
         </div>
@@ -171,7 +171,7 @@ function AboutPage() {
           </span>
           <h2 className="mt-4 text-2xl font-bold text-slate-900">Safety First</h2>
           <p className="mt-3 leading-relaxed text-slate-600">
-            At Shippy Express, ensuring the safety of our customers, employees and our communities
+            At Navora Logistics, ensuring the safety of our customers, employees and our communities
             is our priority. We understand the importance of continuous training and are proud of
             our safety knowledge, experienced staff and ability to exceed industry standards year
             after year.
@@ -197,7 +197,7 @@ function AboutPage() {
           </span>
           <h2 className="mt-4 text-2xl font-bold text-slate-900">Advanced Security</h2>
           <p className="mt-3 leading-relaxed text-slate-600">
-            At Shippy Express, we offer industry-leading asset protection and security compliance
+            At Navora Logistics, we offer industry-leading asset protection and security compliance
             programs. We understand that our customers may have important and unique needs related
             to homeland security regulatory compliance, high-risk products, or brand protection.
           </p>

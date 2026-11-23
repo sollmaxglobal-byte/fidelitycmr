@@ -5,11 +5,11 @@ import { ShippyLayout, PageHero } from "@/components/shippy/ShippyLayout";
 export const Route = createFileRoute("/diplomatic")({
   head: () => ({
     meta: [
-      { title: "Diplomatic Bag & Secure Logistics — Shippy Express" },
+      { title: "Diplomatic Bag & Secure Logistics — Navora Logistics" },
       {
         name: "description",
         content:
-          "Secure diplomatic bag, confidential mail and sensitive equipment delivery worldwide with Shippy Express.",
+          "Secure diplomatic bag, confidential mail and sensitive equipment delivery worldwide with Navora Logistics.",
       },
     ],
   }),
@@ -43,7 +43,7 @@ function DiplomaticPage() {
               flexible and cost-effective door-to-door global service by ground and air.
             </p>
             <p>
-              Our diplomatic courier services, known as the Shippy Express Messengers, make sure
+              Our diplomatic courier services, known as the Navora Logistics Messengers, make sure
               sensitive material is always kept safe throughout its entire journey.
             </p>
             <p>

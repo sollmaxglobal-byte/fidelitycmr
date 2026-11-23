@@ -2,7 +2,7 @@ import type { Shipment, TrackingEvent } from "@/data/shipments";
 
 export type MailResult = { status: "sent" | "queued" | "failed"; error?: string };
 
-const FALLBACK_FROM = "Shippy Express <onboarding@resend.dev>";
+const FALLBACK_FROM = "Navora Logistics <onboarding@resend.dev>";
 
 /**
  * Delivers an email through Resend when RESEND_API_KEY is configured.
@@ -39,13 +39,13 @@ function shell(title: string, body: string) {
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="padding:28px 12px">
     <tr><td align="center">
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border-radius:14px;overflow:hidden;border:1px solid #e2e8f0">
-        <tr><td style="background:#1d4ed8;padding:20px 24px;color:#ffffff;font-size:18px;font-weight:700">Shippy Express</td></tr>
+        <tr><td style="background:#1d4ed8;padding:20px 24px;color:#ffffff;font-size:18px;font-weight:700">Navora Logistics</td></tr>
         <tr><td style="padding:26px 24px">
           <h1 style="margin:0 0 14px;font-size:20px;line-height:1.3">${title}</h1>
           ${body}
         </td></tr>
         <tr><td style="padding:18px 24px;background:#f8fafc;color:#64748b;font-size:12px">
-          Shippy Express — Providing smart logistics solutions across the world.
+          Navora Logistics — Providing smart logistics solutions across the world.
         </td></tr>
       </table>
     </td></tr>

@@ -20,11 +20,11 @@ import { TrackForm } from "@/components/shippy/TrackForm";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Shippy Express — Premium Global Shipping Solutions" },
+      { title: "Navora Logistics — Premium Global Shipping Solutions" },
       {
         name: "description",
         content:
-          "Shippy Express is a global logistics service provider offering premium shipping, courier, freight and real-time shipment tracking services worldwide.",
+          "Navora Logistics is a global logistics service provider offering premium shipping, courier, freight and real-time shipment tracking services worldwide.",
       },
     ],
   }),
@@ -62,7 +62,7 @@ const services = [
   {
     icon: Plane,
     title: "Air Freight",
-    text: "Shippy Express, as an IATA-endorsed air forwarder, offers professional and reliable global air-freight solutions.",
+    text: "Navora Logistics, as an IATA-endorsed air forwarder, offers professional and reliable global air-freight solutions.",
   },
   {
     icon: Ship,
@@ -72,7 +72,7 @@ const services = [
   {
     icon: Truck,
     title: "Road Transportation",
-    text: "Highly experienced and dependable, Shippy Express is a trusted partner in domestic road transportation.",
+    text: "Highly experienced and dependable, Navora Logistics is a trusted partner in domestic road transportation.",
   },
   {
     icon: ShieldCheck,
@@ -152,21 +152,21 @@ const performance = [
 const testimonials = [
   {
     quote:
-      "Given my past experiences with other logistics companies, I can say without exception that the services provided by Shippy Express greatly exceed industry standards.",
+      "Given my past experiences with other logistics companies, I can say without exception that the services provided by Navora Logistics greatly exceed industry standards.",
     initials: "MP",
     name: "Monique Pete",
     role: "Logistics Manager, Martrax Inc.",
   },
   {
     quote:
-      "More than once, Shippy Express has 'saved the day', delivering our cargo on time with short notice. They have won my gratitude and loyalty with their 'can do' approach.",
+      "More than once, Navora Logistics has 'saved the day', delivering our cargo on time with short notice. They have won my gratitude and loyalty with their 'can do' approach.",
     initials: "SA",
     name: "Steve Anderson",
     role: "President/Owner, Duplication Factory",
   },
   {
     quote:
-      "I am very pleased with the service provided by Shippy Express. They find good carriers and use them regularly so we get a high level of service. Their communication is outstanding.",
+      "I am very pleased with the service provided by Navora Logistics. They find good carriers and use them regularly so we get a high level of service. Their communication is outstanding.",
     initials: "CB",
     name: "Cathy Beckman",
     role: "Logistics Team, Oxea Chemicals",

@@ -27,11 +27,11 @@ export const Route = createFileRoute("/trackingresult")({
   }),
   head: () => ({
     meta: [
-      { title: "Shipment Tracking — Shippy Express" },
+      { title: "Shipment Tracking — Navora Logistics" },
       {
         name: "description",
         content:
-          "Follow your Shippy Express shipment in real time with live map tracking and history.",
+          "Follow your Navora Logistics shipment in real time with live map tracking and history.",
       },
     ],
   }),
